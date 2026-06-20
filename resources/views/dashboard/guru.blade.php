@@ -5,14 +5,10 @@
 @section('content')
 <div class="space-y-8">
     
-    <!-- Top Greeting Banner -->
-    <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-100">
-        <div class="absolute right-0 top-0 w-80 h-full opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-indigo-200 to-indigo-900 pointer-events-none"></div>
-        <span class="bg-white/20 text-white font-bold text-xs uppercase px-3 py-1.5 rounded-full tracking-wider inline-block mb-3">
-            NIP: {{ Auth::user()->nip }}
-        </span>
-        <h2 class="text-4xl font-extrabold tracking-tight">Halo, {{ Auth::user()->name }}!</h2>
-        <p class="text-indigo-100 text-sm mt-1 font-medium">Ulasan & Feedback Evaluasi Ketercapaian Pembelajaran Siswa</p>
+    <!-- Greeting -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800">Halo, {{ Auth::user()->name }} 👋</h2>
+        <p class="text-slate-400 text-sm mt-1">NIP: {{ Auth::user()->nip }} &mdash; Ulasan & Feedback Evaluasi Ketercapaian Pembelajaran Siswa</p>
     </div>
 
     <!-- Stats row -->
@@ -60,76 +56,108 @@
     <!-- Kelas & Mapel Diajar -->
     <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
         <h3 class="text-base font-bold text-slate-600 uppercase tracking-wider mb-4">Kelas & Mata Pelajaran Diampu</h3>
+        <p class="text-xs text-slate-400 mb-4">Klik salah satu kelas untuk lihat detail siswa dan rekap evaluasi.</p>
         <div class="flex flex-wrap gap-3">
-            @foreach($subjectTeachers as $st)
-                <div class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3">
+            @foreach($classDetails as $index => $cd)
+                <button type="button"
+                        onclick="openClassDetail({{ $index }})"
+                        class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3 hover:bg-indigo-50 hover:border-indigo-200 transition-all hover-lift cursor-pointer text-left">
                     <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 font-bold">
-                        {{ $st->kelas->nama_kelas }}
+                        {{ $cd['kelas'] }}
                     </div>
                     <div>
-                        <h4 class="font-bold text-slate-700 text-sm">{{ $st->subject->nama_mapel }}</h4>
-                        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{{ $st->subject->kode_mapel }}</p>
+                        <h4 class="font-bold text-slate-700 text-sm">{{ $cd['mapel'] }}</h4>
+                        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{{ $cd['kode_mapel'] }}</p>
                     </div>
-                </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs ml-2"></i>
+                </button>
             @endforeach
         </div>
     </div>
+</div>
 
-    <!-- Evaluation Breakdown and Comments -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6" id="feedback-section">
-        
-        <!-- Breakdown per Indikator -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm lg:col-span-6">
-            <h3 class="text-base font-bold text-slate-600 uppercase tracking-wider mb-6">Poin Penilaian Per Indikator</h3>
-            
-            <div class="space-y-6">
-                @foreach($indicatorsBreakdown as $ind)
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-bold text-slate-600">{{ $ind['name'] }}</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-sm font-extrabold text-slate-800">{{ $ind['average'] }}</span>
-                                <div class="flex text-amber-400 text-xs">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i class="fa-{{ $i <= round($ind['average']) ? 'solid' : 'regular' }} fa-star"></i>
-                                    @endfor
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Progress bar -->
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                            <div class="bg-indigo-600 h-full rounded-full transition-all" style="width: {{ ($ind['average'] / 5) * 100 }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
+<!-- Modal Detail Kelas -->
+<div id="class-detail-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden" onclick="closeClassDetail()"></div>
+<div id="class-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 pointer-events-none">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto pointer-events-auto">
+        <div class="p-6 border-b border-slate-100 flex items-start justify-between">
+            <div>
+                <h3 id="cd-title" class="text-xl font-bold text-slate-800"></h3>
+                <p id="cd-subtitle" class="text-slate-400 text-sm mt-1"></p>
+            </div>
+            <button type="button" onclick="closeClassDetail()" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="p-6 grid grid-cols-3 gap-3">
+            <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                <p id="cd-total-siswa" class="text-2xl font-extrabold text-slate-800"></p>
+                <p class="text-[10px] text-slate-400 font-semibold uppercase mt-1">Total Siswa</p>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                <p id="cd-sudah-isi" class="text-2xl font-extrabold text-slate-800"></p>
+                <p class="text-[10px] text-slate-400 font-semibold uppercase mt-1">Sudah Isi</p>
+            </div>
+            <div class="bg-emerald-50 rounded-2xl p-4 text-center">
+                <p id="cd-rata-rata" class="text-2xl font-extrabold text-emerald-600"></p>
+                <p class="text-[10px] text-slate-400 font-semibold uppercase mt-1">Rata-rata</p>
             </div>
         </div>
 
-        <!-- Ulasan / Komentar Tertulis (Anonim) -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm lg:col-span-6 flex flex-col justify-between">
-            <div>
-                <h3 class="text-base font-bold text-slate-600 uppercase tracking-wider mb-6">Ulasan Tertulis dari Siswa (Anonim)</h3>
-                
-                <div class="space-y-4 max-h-[380px] overflow-y-auto pr-1">
-                    @forelse($responses as $resp)
-                        @if($resp->comments)
-                            <div class="p-4 bg-indigo-50/40 border border-indigo-100/30 rounded-2xl">
-                                <div class="flex justify-between items-center text-xs font-semibold text-indigo-500 mb-2">
-                                    <span>Siswa Kelas {{ $resp->student->kelas->nama_kelas }}</span>
-                                    <span>{{ $resp->created_at->diffForHumans() }}</span>
-                                </div>
-                                <p class="text-sm text-slate-600 italic">"{{ $resp->comments }}"</p>
-                            </div>
-                        @endif
-                    @empty
-                        <div class="text-center py-12 text-slate-400">
-                            <i class="fa-regular fa-comment-dots text-3xl mb-3 block"></i>
-                            <p class="text-sm font-medium">Belum ada ulasan tertulis dari siswa.</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
+        <div class="px-6 pb-6">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daftar Siswa</h4>
+            <div id="cd-student-list" class="space-y-2"></div>
         </div>
     </div>
 </div>
+
+<script>
+    const classDetails = @json($classDetails);
+
+    function openClassDetail(index) {
+        const cd = classDetails[index];
+
+        document.getElementById('cd-title').textContent = cd.kelas + ' — ' + cd.mapel;
+        document.getElementById('cd-subtitle').textContent = 'Kode Mapel: ' + cd.kode_mapel;
+        document.getElementById('cd-total-siswa').textContent = cd.total_siswa;
+        document.getElementById('cd-sudah-isi').textContent = cd.sudah_mengisi;
+        document.getElementById('cd-rata-rata').textContent = cd.rata_rata > 0 ? cd.rata_rata : '-';
+
+        const listEl = document.getElementById('cd-student-list');
+        listEl.innerHTML = '';
+
+        if (cd.siswa.length === 0) {
+            listEl.innerHTML = '<p class="text-sm text-slate-400 text-center py-6">Belum ada siswa di kelas ini.</p>';
+        } else {
+            cd.siswa.forEach(function (s) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100';
+
+                const badge = s.sudah_evaluasi
+                    ? '<span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600">Sudah Isi</span>'
+                    : '<span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-600">Belum Isi</span>';
+
+                row.innerHTML =
+                    '<div>' +
+                        '<p class="text-sm font-bold text-slate-700">' + s.name + '</p>' +
+                        '<p class="text-[11px] text-slate-400">NISN: ' + s.nisn + '</p>' +
+                    '</div>' +
+                    badge;
+
+                listEl.appendChild(row);
+            });
+        }
+
+        document.getElementById('class-detail-overlay').classList.remove('hidden');
+        document.getElementById('class-detail-modal').classList.remove('hidden');
+        document.getElementById('class-detail-modal').classList.add('flex');
+    }
+
+    function closeClassDetail() {
+        document.getElementById('class-detail-overlay').classList.add('hidden');
+        document.getElementById('class-detail-modal').classList.add('hidden');
+        document.getElementById('class-detail-modal').classList.remove('flex');
+    }
+</script>
 @endsection

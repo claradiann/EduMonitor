@@ -44,6 +44,42 @@ class DashboardController extends Controller
     }
 
     /**
+     * Guru: Halaman Feedback Evaluasi (halaman terpisah).
+     */
+    public function guruFeedback()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403);
+        }
+
+        $subjectTeachers = SubjectTeacher::where('teacher_id', $user->id)
+            ->with(['subject', 'kelas'])
+            ->get();
+
+        $subjectTeacherIds = $subjectTeachers->pluck('id');
+
+        $responses = EvaluationResponse::whereIn('subject_teacher_id', $subjectTeacherIds)
+            ->with(['student.kelas'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $indicatorsBreakdown = EvaluationIndicator::all()->map(function ($indicator) use ($responses) {
+            $responseIds = $responses->pluck('id');
+            $avgScore = EvaluationScore::where('indicator_id', $indicator->id)
+                ->whereIn('evaluation_response_id', $responseIds)
+                ->avg('score');
+
+            return [
+                'name' => $indicator->indicator_name,
+                'average' => $avgScore ? round($avgScore, 2) : 0,
+            ];
+        });
+
+        return view('dashboard.guru-feedback', compact('responses', 'indicatorsBreakdown'));
+    }
+
+    /**
      * Admin: Manajemen User page (halaman terpisah).
      */
     public function index_users()
@@ -163,7 +199,40 @@ class DashboardController extends Controller
             ->whereIn('kelas_id', $subjectTeachers->pluck('kelas_id'))
             ->count();
 
-        return view('dashboard.guru', compact('subjectTeachers', 'responses', 'averageRating', 'indicatorsBreakdown', 'totalStudentsTaught'));
+        // Detail per kelas yang diampu: daftar siswa, rata-rata skor, progres pengisian kuesioner
+        $classDetails = $subjectTeachers->map(function ($st) use ($responses) {
+            $students = User::where('role', 'siswa')
+                ->where('kelas_id', $st->kelas_id)
+                ->orderBy('name')
+                ->get();
+
+            $stResponses = $responses->where('subject_teacher_id', $st->id);
+            $stResponseIds = $stResponses->pluck('id');
+
+            $stScores = EvaluationScore::whereIn('evaluation_response_id', $stResponseIds)->pluck('score');
+            $classAverage = $stScores->count() > 0 ? round($stScores->average(), 2) : 0;
+
+            $studentList = $students->map(function ($s) use ($stResponses) {
+                return [
+                    'name' => $s->name,
+                    'nisn' => $s->nisn ?? '-',
+                    'sudah_evaluasi' => $stResponses->where('student_id', $s->id)->isNotEmpty(),
+                ];
+            });
+
+            return [
+                'subject_teacher_id' => $st->id,
+                'kelas' => $st->kelas->nama_kelas,
+                'mapel' => $st->subject->nama_mapel,
+                'kode_mapel' => $st->subject->kode_mapel,
+                'total_siswa' => $students->count(),
+                'sudah_mengisi' => $stResponses->count(),
+                'rata_rata' => $classAverage,
+                'siswa' => $studentList,
+            ];
+        });
+
+        return view('dashboard.guru', compact('subjectTeachers', 'responses', 'averageRating', 'indicatorsBreakdown', 'totalStudentsTaught', 'classDetails'));
     }
 
     /**

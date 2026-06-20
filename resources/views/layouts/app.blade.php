@@ -85,10 +85,10 @@
 
                 @elseif($role == 'guru')
                     <!-- Evaluasi & Feedback (Guru) -->
-                    <a href="#feedback-section" 
+                    <a href="{{ route('guru.feedback') }}" 
                        id="nav-feedback"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                        <i class="fa-solid fa-comments text-lg text-slate-400"></i>
+                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'guru.feedback' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                        <i class="fa-solid fa-comments text-lg {{ $route == 'guru.feedback' ? 'text-white' : 'text-slate-400' }}"></i>
                         <span>Feedback Evaluasi</span>
                     </a>
 

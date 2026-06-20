@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
         // 3. Seed Users
         // Admin
         User::create([
-            'name' => 'Wakasek Kurikulum',
+            'name' => 'Admin Sistem',
             'email' => 'admin@edumonitor.sch.id',
             'username' => 'admin',
             'role' => 'admin',

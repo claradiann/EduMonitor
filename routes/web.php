@@ -23,6 +23,9 @@ Route::middleware('auth')->group(function () {
     // Admin Pages
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users');
     Route::get('/admin/recap', [DashboardController::class, 'recap'])->name('admin.recap');
+    
+    // Guru Pages
+    Route::get('/guru/feedback', [DashboardController::class, 'guruFeedback'])->name('guru.feedback');
 
     // Admin User Management
     Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');
