@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     /**
-     * Display the dashboard matching the user's role.
+     * Display the dashboard matching the user's role. (Beranda)
      */
     public function index()
     {
@@ -44,21 +44,31 @@ class DashboardController extends Controller
     }
 
     /**
-     * Admin Dashboard logic.
+     * Admin: Manajemen User page (halaman terpisah).
      */
-    private function adminDashboard($user)
+    public function index_users()
     {
-        $stats = [
-            'total_students' => User::where('role', 'siswa')->count(),
-            'total_teachers' => User::where('role', 'guru')->count(),
-            'total_parents' => User::where('role', 'orang_tua')->count(),
-            'total_classes' => Kelas::count(),
-            'total_subjects' => Subject::count(),
-            'total_evaluations' => EvaluationResponse::count(),
-        ];
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403);
+        }
 
-        // Overall Teacher evaluation rankings
-        // Get all teachers and their average scores across all responses
+        $usersList = User::with('kelas')->orderBy('role')->orderBy('name')->get();
+        $kelas = Kelas::all();
+
+        return view('dashboard.admin-users', compact('usersList', 'kelas'));
+    }
+
+    /**
+     * Admin: Rekap Evaluasi page (halaman terpisah).
+     */
+    public function recap()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403);
+        }
+
         $teachersEvaluations = User::where('role', 'guru')
             ->with(['subjectTeachers.evaluationResponses.scores'])
             ->get()
@@ -90,7 +100,6 @@ class DashboardController extends Controller
             ->sortByDesc('average_rating')
             ->values();
 
-        // Evaluation responses summary per indicator
         $indicators = EvaluationIndicator::all()->map(function ($indicator) {
             $avgScore = EvaluationScore::where('indicator_id', $indicator->id)->avg('score');
             return [
@@ -99,11 +108,24 @@ class DashboardController extends Controller
             ];
         });
 
-        // Get user lists for management
-        $usersList = User::with(['kelas', 'student'])->get();
-        $kelas = Kelas::all();
+        return view('dashboard.admin-recap', compact('teachersEvaluations', 'indicators'));
+    }
 
-        return view('dashboard.admin', compact('stats', 'teachersEvaluations', 'indicators', 'usersList', 'kelas'));
+    /**
+     * Admin Dashboard logic. (Beranda - stats saja)
+     */
+    private function adminDashboard($user)
+    {
+        $stats = [
+            'total_students' => User::where('role', 'siswa')->count(),
+            'total_teachers' => User::where('role', 'guru')->count(),
+            'total_parents' => User::where('role', 'orang_tua')->count(),
+            'total_classes' => Kelas::count(),
+            'total_subjects' => Subject::count(),
+            'total_evaluations' => EvaluationResponse::count(),
+        ];
+
+        return view('dashboard.admin', compact('stats'));
     }
 
     /**
@@ -111,24 +133,20 @@ class DashboardController extends Controller
      */
     private function guruDashboard($user)
     {
-        // Get subjects taught by this teacher
         $subjectTeachers = SubjectTeacher::where('teacher_id', $user->id)
             ->with(['subject', 'kelas'])
             ->get();
 
         $subjectTeacherIds = $subjectTeachers->pluck('id');
 
-        // Evaluation responses for this teacher
         $responses = EvaluationResponse::whereIn('subject_teacher_id', $subjectTeacherIds)
             ->with(['student.kelas'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Overall average rating for this teacher
         $allScores = EvaluationScore::whereIn('evaluation_response_id', $responses->pluck('id'))->pluck('score');
         $averageRating = $allScores->count() > 0 ? round($allScores->average(), 2) : 0;
 
-        // Breakdown per indicator
         $indicatorsBreakdown = EvaluationIndicator::all()->map(function ($indicator) use ($responses) {
             $responseIds = $responses->pluck('id');
             $avgScore = EvaluationScore::where('indicator_id', $indicator->id)
@@ -141,7 +159,6 @@ class DashboardController extends Controller
             ];
         });
 
-        // Simple class stats
         $totalStudentsTaught = User::where('role', 'siswa')
             ->whereIn('kelas_id', $subjectTeachers->pluck('kelas_id'))
             ->count();
@@ -154,16 +171,13 @@ class DashboardController extends Controller
      */
     private function siswaDashboard($user)
     {
-        // Class
         $kelas = $user->kelas;
 
-        // Current semester grades (Genap 2025/2026)
         $grades = Grade::where('student_id', $user->id)
             ->where('semester', 'Genap 2025/2026')
             ->with('subject')
             ->get();
 
-        // Calculate average grade
         $avgGrade = 0;
         if ($grades->count() > 0) {
             $totalAvg = 0;
@@ -173,7 +187,6 @@ class DashboardController extends Controller
             $avgGrade = round($totalAvg / $grades->count(), 1);
         }
 
-        // Compare with past semesters (for chart)
         $semestersData = Grade::where('student_id', $user->id)
             ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) / (4 * COUNT(*)) as average'))
             ->groupBy('semester')
@@ -182,7 +195,6 @@ class DashboardController extends Controller
                 return [$item->semester => round($item->average, 1)];
             });
 
-        // Ensure current active semesters are included
         $allSemesters = [
             'Gasal 2025/2026' => $semestersData->get('Gasal 2025/2026', 0.0),
             'Genap 2025/2026' => $semestersData->get('Genap 2025/2026', 0.0),
@@ -190,18 +202,15 @@ class DashboardController extends Controller
             'Genap 2026/2027' => $semestersData->get('Genap 2026/2027', 0.0),
         ];
 
-        // Teacher notes
         $notes = TeacherNote::where('student_id', $user->id)
             ->with(['teacher', 'subject'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Subject teacher mappings in this student's class (to fill evaluations)
         $subjectTeachers = SubjectTeacher::where('kelas_id', $user->kelas_id)
             ->with(['subject', 'teacher'])
             ->get()
             ->map(function ($st) use ($user) {
-                // Check if already evaluated this semester
                 $evaluated = EvaluationResponse::where('student_id', $user->id)
                     ->where('subject_teacher_id', $st->id)
                     ->where('semester', 'Genap 2025/2026')
@@ -223,14 +232,12 @@ class DashboardController extends Controller
      */
     private function orangTuaDashboard($user)
     {
-        // Get child
         $student = $user->student;
 
         if (!$student) {
             return view('dashboard.orangtua', ['student' => null]);
         }
 
-        // Fetch details of the student
         $kelas = $student->kelas;
 
         $grades = Grade::where('student_id', $student->id)

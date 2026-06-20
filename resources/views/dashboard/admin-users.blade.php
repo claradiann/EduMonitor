@@ -3,27 +3,26 @@
 @section('title', 'Manajemen User - EduMonitor')
 
 @section('content')
-<div class="space-y-8">
+<div class="space-y-6">
 
-    <!-- Top Heading -->
-    <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-lg shadow-indigo-100">
-        <div class="absolute right-0 top-0 w-80 h-full opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-indigo-200 to-indigo-900 pointer-events-none"></div>
-        <h2 class="text-4xl font-extrabold tracking-tight">Manajemen User</h2>
-        <p class="text-indigo-100 text-sm mt-1 font-medium">Kelola akun Siswa, Orang Tua, Guru, dan Admin.</p>
+    <!-- Heading -->
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800">Manajemen User</h2>
+        <p class="text-slate-400 text-sm mt-1">Kelola akun Siswa, Orang Tua, Guru, dan Admin.</p>
     </div>
 
     <div id="users-section" class="space-y-6">
 
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
 
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h3 class="text-base font-bold text-slate-600 uppercase tracking-wider">Daftar Pengguna EduMonitor</h3>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">Kelola akun Siswa, Orang Tua, Guru, dan Admin.</p>
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Daftar Pengguna EduMonitor</h3>
+                    <p class="text-xs text-slate-400 mt-1">Kelola akun Siswa, Orang Tua, Guru, dan Admin.</p>
                 </div>
                 <button onclick="toggleModal('addUserModal')"
                         id="btn-add-user"
-                        class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-indigo-100 flex items-center gap-2 hover-lift">
+                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center gap-2 hover-lift">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Tambah Pengguna</span>
                 </button>
@@ -96,7 +95,6 @@
             </div>
 
         </div>
-
     </div>
 
     <!-- Modal: Add User -->

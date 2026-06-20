@@ -26,7 +26,7 @@
 
     @yield('styles')
 </head>
-<body class="min-h-screen text-slate-800 antialiased flex">
+<body class="min-h-screen text-slate-800 antialiased flex bg-slate-50">
 
     <!-- Sidebar Layout -->
     <aside class="w-72 bg-white flex flex-col justify-between p-6 border-r border-slate-100 shrink-0">
@@ -157,7 +157,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+    <main class="flex-1 p-8 overflow-y-auto w-full">
         <!-- Flash Messages -->
         @if(session('success'))
             <div id="alert-success" class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center gap-3 shadow-sm">

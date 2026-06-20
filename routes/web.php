@@ -20,6 +20,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/evaluation/fill/{subject_teacher_id}', [EvaluationController::class, 'showForm'])->name('evaluation.fill');
     Route::post('/evaluation/submit/{subject_teacher_id}', [EvaluationController::class, 'storeResponse'])->name('evaluation.submit');
 
+    // Admin Pages
+    Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users');
+    Route::get('/admin/recap', [DashboardController::class, 'recap'])->name('admin.recap');
+
     // Admin User Management
     Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{id}', [UserController::class, 'update'])->name('admin.users.update');

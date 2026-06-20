@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     /**
+     * Show admin user management page.
+     */
+    public function index()
+    {
+        $usersList = User::with('kelas')->orderBy('role')->orderBy('name')->get();
+        $kelas = Kelas::all();
+
+        return view('dashboard.admin-users', compact('usersList', 'kelas'));
+    }
+
+    /**
      * Store a new user (admin, guru, siswa, orang_tua).
      */
     public function store(Request $request)
@@ -40,7 +51,7 @@ class UserController extends Controller
 
         User::create($userData);
 
-        return redirect()->route('dashboard')->with('success', 'Pengguna berhasil ditambahkan!');
+        return redirect()->route('admin.users')->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
     /**
@@ -72,7 +83,7 @@ class UserController extends Controller
 
         $user->save();
 
-        return redirect()->route('dashboard')->with('success', 'Data pengguna berhasil diperbarui!');
+        return redirect()->route('admin.users')->with('success', 'Data pengguna berhasil diperbarui!');
     }
 
     /**
@@ -81,14 +92,13 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        
-        // Prevent deleting oneself
+
         if (auth()->id() === $user->id) {
-            return redirect()->route('dashboard')->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+            return redirect()->route('admin.users')->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
         $user->delete();
 
-        return redirect()->route('dashboard')->with('success', 'Pengguna berhasil dihapus!');
+        return redirect()->route('admin.users')->with('success', 'Pengguna berhasil dihapus!');
     }
 }
