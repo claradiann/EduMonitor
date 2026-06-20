@@ -16,6 +16,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Siswa Pages (halaman terpisah)
+    Route::get('/siswa/nilai', [DashboardController::class, 'siswaNilai'])->name('siswa.nilai');
+    Route::get('/siswa/evaluasi', [DashboardController::class, 'siswaEvaluasi'])->name('siswa.evaluasi');
+    Route::get('/siswa/profile', [DashboardController::class, 'siswaProfile'])->name('siswa.profile');
+
+    // Guru Pages
+    Route::get('/guru/profile', [DashboardController::class, 'guruProfile'])->name('guru.profile');
+
+    // Admin Pages
+    Route::get('/admin/profile', [DashboardController::class, 'adminProfile'])->name('admin.profile');
+
+    // Orang Tua Pages
+    Route::get('/orangtua/profile', [DashboardController::class, 'orangTuaProfile'])->name('orangtua.profile');
+
     // Student Evaluation
     Route::get('/evaluation/fill/{subject_teacher_id}', [EvaluationController::class, 'showForm'])->name('evaluation.fill');
     Route::post('/evaluation/submit/{subject_teacher_id}', [EvaluationController::class, 'storeResponse'])->name('evaluation.submit');

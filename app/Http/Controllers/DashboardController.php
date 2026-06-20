@@ -236,7 +236,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Siswa Dashboard logic.
+     * Siswa Dashboard logic. (Beranda - ringkasan saja)
      */
     private function siswaDashboard($user)
     {
@@ -247,34 +247,60 @@ class DashboardController extends Controller
             ->with('subject')
             ->get();
 
-        $avgGrade = 0;
-        if ($grades->count() > 0) {
-            $totalAvg = 0;
-            foreach ($grades as $g) {
-                $totalAvg += $g->average;
-            }
-            $avgGrade = round($totalAvg / $grades->count(), 1);
+        $avgGrade = $this->calculateAvgGrade($grades);
+
+        $notes = TeacherNote::where('student_id', $user->id)
+            ->with(['teacher', 'subject'])
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $subjectTeachers = SubjectTeacher::where('kelas_id', $user->kelas_id)->get();
+
+        $evaluatedCount = EvaluationResponse::where('student_id', $user->id)
+            ->where('semester', 'Genap 2025/2026')
+            ->count();
+
+        return view('dashboard.siswa', compact('kelas', 'grades', 'avgGrade', 'notes', 'subjectTeachers', 'evaluatedCount'));
+    }
+
+    /**
+     * Siswa: Halaman Nilai (halaman terpisah).
+     */
+    public function siswaNilai()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'siswa') {
+            abort(403);
         }
 
-        $semestersData = Grade::where('student_id', $user->id)
-            ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) / (4 * COUNT(*)) as average'))
-            ->groupBy('semester')
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->semester => round($item->average, 1)];
-            });
+        $kelas = $user->kelas;
 
-        $allSemesters = [
-            'Gasal 2025/2026' => $semestersData->get('Gasal 2025/2026', 0.0),
-            'Genap 2025/2026' => $semestersData->get('Genap 2025/2026', 0.0),
-            'Gasal 2026/2027' => $semestersData->get('Gasal 2026/2027', 0.0),
-            'Genap 2026/2027' => $semestersData->get('Genap 2026/2027', 0.0),
-        ];
+        $grades = Grade::where('student_id', $user->id)
+            ->where('semester', 'Genap 2025/2026')
+            ->with('subject')
+            ->get();
+
+        $avgGrade = $this->calculateAvgGrade($grades);
+        $allSemesters = $this->getAllSemestersAverage($user->id);
 
         $notes = TeacherNote::where('student_id', $user->id)
             ->with(['teacher', 'subject'])
             ->orderBy('created_at', 'desc')
             ->get();
+
+        return view('dashboard.siswa-nilai', compact('kelas', 'grades', 'avgGrade', 'allSemesters', 'notes'));
+    }
+
+    /**
+     * Siswa: Halaman Evaluasi Pembelajaran (halaman terpisah).
+     */
+    public function siswaEvaluasi()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'siswa') {
+            abort(403);
+        }
 
         $subjectTeachers = SubjectTeacher::where('kelas_id', $user->kelas_id)
             ->with(['subject', 'teacher'])
@@ -293,7 +319,106 @@ class DashboardController extends Controller
                 ];
             });
 
-        return view('dashboard.siswa', compact('kelas', 'grades', 'avgGrade', 'allSemesters', 'notes', 'subjectTeachers'));
+        return view('dashboard.siswa-evaluasi', compact('subjectTeachers'));
+    }
+
+    /**
+     * Siswa: Halaman Profile (halaman terpisah).
+     */
+    public function siswaProfile()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'siswa') {
+            abort(403);
+        }
+
+        $kelas = $user->kelas;
+
+        return view('dashboard.siswa-profile', compact('user', 'kelas'));
+    }
+
+    /**
+     * Guru: Halaman Profile (halaman terpisah).
+     */
+    public function guruProfile()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            abort(403);
+        }
+
+        $subjectTeachers = SubjectTeacher::where('teacher_id', $user->id)
+            ->with(['subject', 'kelas'])
+            ->get();
+
+        return view('dashboard.guru-profile', compact('user', 'subjectTeachers'));
+    }
+
+    /**
+     * Admin: Halaman Profile (halaman terpisah).
+     */
+    public function adminProfile()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403);
+        }
+
+        return view('dashboard.admin-profile', compact('user'));
+    }
+
+    /**
+     * Orang Tua: Halaman Profile (halaman terpisah).
+     */
+    public function orangTuaProfile()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'orang_tua') {
+            abort(403);
+        }
+
+        $student = $user->student;
+        $kelas = $student?->kelas;
+
+        return view('dashboard.orangtua-profile', compact('user', 'student', 'kelas'));
+    }
+
+    /**
+     * Helper: hitung rata-rata nilai dari koleksi Grade.
+     */
+    private function calculateAvgGrade($grades)
+    {
+        if ($grades->count() === 0) {
+            return 0;
+        }
+
+        $totalAvg = 0;
+        foreach ($grades as $g) {
+            $totalAvg += $g->average;
+        }
+
+        return round($totalAvg / $grades->count(), 1);
+    }
+
+    /**
+     * Helper: rata-rata nilai per semester untuk seorang siswa.
+     */
+    private function getAllSemestersAverage($studentId)
+    {
+        $semestersData = Grade::where('student_id', $studentId)
+            ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) / (4 * COUNT(*)) as average'))
+            ->groupBy('semester')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->semester => round($item->average, 1)];
+            });
+
+        return [
+            'Gasal 2025/2026' => $semestersData->get('Gasal 2025/2026', 0.0),
+            'Genap 2025/2026' => $semestersData->get('Genap 2025/2026', 0.0),
+            'Gasal 2026/2027' => $semestersData->get('Gasal 2026/2027', 0.0),
+            'Genap 2026/2027' => $semestersData->get('Genap 2026/2027', 0.0),
+        ];
     }
 
     /**

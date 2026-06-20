@@ -59,20 +59,20 @@
 
                 @if($role == 'siswa')
                     <!-- Nilai (Siswa) -->
-                    <a href="#nilai-section" 
-                       id="nav-nilai"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                        <i class="fa-solid fa-chart-simple text-lg text-slate-400"></i>
-                        <span>Nilai</span>
+                    <a href="{{ route('siswa.nilai') }}" 
+                    id="nav-nilai"
+                    class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'siswa.nilai' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                    <i class="fa-solid fa-chart-simple text-lg {{ $route == 'siswa.nilai' ? 'text-white' : 'text-slate-400' }}"></i>
+                    <span>Nilai</span>
                     </a>
 
                     <!-- Evaluasi (Siswa) -->
-                    <a href="#evaluasi-section" 
-                       id="nav-evaluasi"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                        <i class="fa-solid fa-pen-to-square text-lg text-slate-400"></i>
-                        <span>Evaluasi</span>
-                    </a>
+                    <a href="{{ route('siswa.evaluasi') }}" 
+                    id="nav-evaluasi"
+                    class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'siswa.evaluasi' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                    <i class="fa-solid fa-pen-to-square text-lg {{ $route == 'siswa.evaluasi' ? 'text-white' : 'text-slate-400' }}"></i>
+                    <span>Evaluasi</span>
+                </a>
 
                 @elseif($role == 'orang_tua')
                     <!-- Nilai Anak (Orang Tua) -->
@@ -111,10 +111,20 @@
                 @endif
 
                 <!-- Profile (Semua Role) -->
-                <a href="#profile-section" 
+                @php
+                    $profileRoute = match($role) {
+                        'siswa' => route('siswa.profile'),
+                        'guru' => route('guru.profile'),
+                        'admin' => route('admin.profile'),
+                        'orang_tua' => route('orangtua.profile'),
+                        default => '#',
+                    };
+                    $profileRouteNames = ['siswa.profile', 'guru.profile', 'admin.profile', 'orangtua.profile'];
+                @endphp 
+                <a href="{{ $profileRoute }}" 
                    id="nav-profile"
-                   class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                    <i class="fa-solid fa-user text-lg text-slate-400"></i>
+                   class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ in_array($route, $profileRouteNames) ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                    <i class="fa-solid fa-user text-lg {{ in_array($route, $profileRouteNames) ? 'text-white' : 'text-slate-400' }}"></i>
                     <span>Profile</span>
                 </a>
             </nav>

@@ -22,10 +22,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed Kelas
-        $kelas7A = Kelas::create(['nama_kelas' => 'VII-A']);
-        $kelas7B = Kelas::create(['nama_kelas' => 'VII-B']);
-        $kelas8A = Kelas::create(['nama_kelas' => 'VIII-A']);
-        $kelas9A = Kelas::create(['nama_kelas' => 'IX-A']);
+        $kelas7A = Kelas::create(['nama_kelas' => 'VII-Appreciation']);
+        $kelas7B = Kelas::create(['nama_kelas' => 'VII-Peace']);
+        $kelas8A = Kelas::create(['nama_kelas' => 'VIII-Tollerance']);
+        $kelas9A = Kelas::create(['nama_kelas' => 'IX-Honesty']);
 
         // 2. Seed Subjects (Mata Pelajaran)
         $subjectsData = [
