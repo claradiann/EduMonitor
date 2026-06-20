@@ -151,60 +151,10 @@
 
 @section('scripts')
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('chartNilaiMapel').getContext('2d');
-        
-        const labels = {!! json_encode($grades->map(fn($g) => $g->subject->kode_mapel)) !!};
-        const data = {!! json_encode($grades->map(fn($g) => $g->average)) !!};
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Nilai Rata-rata',
-                    data: data,
-                    backgroundColor: '#1e293b', // Sleek black bar colors to match mockup
-                    borderRadius: 8,
-                    barThickness: 16,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            color: '#f1f5f9'
-                        },
-                        ticks: {
-                            font: {
-                                family: 'Outfit',
-                                weight: '500'
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                family: 'Outfit',
-                                weight: '700'
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    });
+    const chartNilaiMapelData = {
+        labels: {!! json_encode($grades->map(fn($g) => $g->subject->kode_mapel)) !!},
+        data: {!! json_encode($grades->map(fn($g) => $g->average)) !!}
+    };
 </script>
+<script src="{{ asset('js/dashboard.js') }}"></script>
 @endsection

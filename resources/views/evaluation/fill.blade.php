@@ -3,18 +3,7 @@
 @section('title', 'Kuesioner Evaluasi - EduMonitor')
 
 @section('styles')
-<style>
-    /* Premium Star selection overrides */
-    .star-btn {
-        transition: transform 0.15s ease;
-    }
-    .star-btn:hover {
-        transform: scale(1.2);
-    }
-    .star-active {
-        color: #fbbf24 !important; /* amber-400 */
-    }
-</style>
+<link rel="stylesheet" href="{{ asset('css/evaluation.css') }}">
 @endsection
 
 @section('content')
@@ -131,35 +120,5 @@
 @endsection
 
 @section('scripts')
-<script>
-    const scoreLabels = {
-        1: 'Sangat Kurang',
-        2: 'Kurang',
-        3: 'Cukup',
-        4: 'Baik',
-        5: 'Sangat Baik'
-    };
-
-    function setRating(indicatorId, score) {
-        // Update input radio
-        document.getElementById(`rating_${indicatorId}_${score}`).checked = true;
-
-        // Update stars visuals
-        for (let i = 1; i <= 5; i++) {
-            const star = document.getElementById(`star_${indicatorId}_${i}`);
-            if (i <= score) {
-                star.classList.add('star-active');
-                star.classList.remove('text-slate-200');
-            } else {
-                star.classList.remove('star-active');
-                star.classList.add('text-slate-200');
-            }
-        }
-
-        // Update rating text label
-        const label = document.getElementById(`rating_label_${indicatorId}`);
-        label.innerText = scoreLabels[score];
-        label.className = "text-xs font-bold text-amber-500 ml-4 uppercase tracking-wider";
-    }
-</script>
+<script src="{{ asset('js/evaluation.js') }}"></script>
 @endsection

@@ -19,66 +19,11 @@
     <!-- Tailwind CSS (Vite or Fallback CDN to guarantee rendering) -->
     @vite(['resources/css/app.css'])
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ asset('js/tailwind-config.js') }}"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c084fc',
-                            400: '#a78bfa',
-                            500: '#6366f1', // Indigo primary
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
-                        },
-                        danger: {
-                            500: '#e11d48', // Red logout
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Outfit', 'Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body {
-            font-family: 'Outfit', 'Inter', sans-serif;
-            background-color: #f0f4f9; /* Mockup background color */
-        }
-        
-        .sidebar-item-active {
-            background-color: #4f46e5;
-            color: white !important;
-        }
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
-        .sidebar-item-active i {
-            color: white !important;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        /* Micro-animations */
-        .hover-lift {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
-        }
-    </style>
     @yield('styles')
 </head>
 <body class="min-h-screen text-slate-800 antialiased flex">
