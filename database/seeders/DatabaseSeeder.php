@@ -55,41 +55,42 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        // Teachers (Guru)
+        // Teachers (Guru) - 1 guru = 1 mapel saja, boleh ngajar di banyak kelas
         $thomas = User::create([
-            'name' => 'Pak Thomas',
-            'email' => 'thomas@edumonitor.sch.id',
-            'username' => 'thomas',
-            'role' => 'guru',
-            'nip' => 'NIP19820512',
-            'password' => Hash::make('password'),
+            'name' => 'Pak Thomas', 'email' => 'thomas@edumonitor.sch.id', 'username' => 'thomas',
+            'role' => 'guru', 'nip' => 'NIP19820512', 'password' => Hash::make('password'),
         ]);
-
         $ndari = User::create([
-            'name' => 'Bu Ndari',
-            'email' => 'ndari@edumonitor.sch.id',
-            'username' => 'ndari',
-            'role' => 'guru',
-            'nip' => 'NIP19850918',
-            'password' => Hash::make('password'),
+            'name' => 'Bu Ndari', 'email' => 'ndari@edumonitor.sch.id', 'username' => 'ndari',
+            'role' => 'guru', 'nip' => 'NIP19850918', 'password' => Hash::make('password'),
         ]);
-
         $retno = User::create([
-            'name' => 'Bu Retno',
-            'email' => 'retno@edumonitor.sch.id',
-            'username' => 'retno',
-            'role' => 'guru',
-            'nip' => 'NIP19890422',
-            'password' => Hash::make('password'),
+            'name' => 'Bu Retno', 'email' => 'retno@edumonitor.sch.id', 'username' => 'retno',
+            'role' => 'guru', 'nip' => 'NIP19890422', 'password' => Hash::make('password'),
         ]);
-
         $ahmad = User::create([
-            'name' => 'Pak Ahmad',
-            'email' => 'ahmad@edumonitor.sch.id',
-            'username' => 'ahmad',
-            'role' => 'guru',
-            'nip' => 'NIP19770802',
-            'password' => Hash::make('password'),
+            'name' => 'Pak Ahmad', 'email' => 'ahmad@edumonitor.sch.id', 'username' => 'ahmad',
+            'role' => 'guru', 'nip' => 'NIP19770802', 'password' => Hash::make('password'),
+        ]);
+        $siti = User::create([
+            'name' => 'Bu Siti', 'email' => 'siti@edumonitor.sch.id', 'username' => 'siti',
+            'role' => 'guru', 'nip' => 'NIP19840711', 'password' => Hash::make('password'),
+        ]);
+        $bambang = User::create([
+            'name' => 'Pak Bambang', 'email' => 'bambang@edumonitor.sch.id', 'username' => 'bambang',
+            'role' => 'guru', 'nip' => 'NIP19790325', 'password' => Hash::make('password'),
+        ]);
+        $rini = User::create([
+            'name' => 'Bu Rini', 'email' => 'rini@edumonitor.sch.id', 'username' => 'rini',
+            'role' => 'guru', 'nip' => 'NIP19861203', 'password' => Hash::make('password'),
+        ]);
+        $hadi = User::create([
+            'name' => 'Pak Hadi', 'email' => 'hadi@edumonitor.sch.id', 'username' => 'hadi',
+            'role' => 'guru', 'nip' => 'NIP19751119', 'password' => Hash::make('password'),
+        ]);
+        $wati = User::create([
+            'name' => 'Bu Wati', 'email' => 'wati@edumonitor.sch.id', 'username' => 'wati',
+            'role' => 'guru', 'nip' => 'NIP19830804', 'password' => Hash::make('password'),
         ]);
 
         // Students (Siswa)
@@ -143,17 +144,40 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        // 4. Seed Subject Teacher (Mapping)
+        // 4. Seed Subject Teacher (Mapping) - tiap guru cuma 1 mapel, boleh banyak kelas
         $mappings = [
+            // Thomas -> Matematika (kelas 7A & 7B)
             ['teacher_id' => $thomas->id, 'subject_id' => $subjects['MTK']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $thomas->id, 'subject_id' => $subjects['MTK']->id, 'kelas_id' => $kelas7B->id],
+
+            // Ndari -> IPA (kelas 7A, 8A)
             ['teacher_id' => $ndari->id, 'subject_id' => $subjects['IPA']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $ndari->id, 'subject_id' => $subjects['IPA']->id, 'kelas_id' => $kelas8A->id],
+
+            // Retno -> Bahasa Inggris (kelas 7A, 9A)
             ['teacher_id' => $retno->id, 'subject_id' => $subjects['B ING']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $retno->id, 'subject_id' => $subjects['B ING']->id, 'kelas_id' => $kelas9A->id],
+
+            // Ahmad -> Bahasa Indonesia (kelas 7A, 7B)
             ['teacher_id' => $ahmad->id, 'subject_id' => $subjects['B INDO']->id, 'kelas_id' => $kelas7A->id],
-            ['teacher_id' => $retno->id, 'subject_id' => $subjects['B JAWA']->id, 'kelas_id' => $kelas7A->id],
-            ['teacher_id' => $ahmad->id, 'subject_id' => $subjects['IPS']->id, 'kelas_id' => $kelas7A->id],
-            ['teacher_id' => $thomas->id, 'subject_id' => $subjects['TIK']->id, 'kelas_id' => $kelas7A->id],
-            ['teacher_id' => $thomas->id, 'subject_id' => $subjects['PJOK']->id, 'kelas_id' => $kelas7A->id],
-            ['teacher_id' => $ndari->id, 'subject_id' => $subjects['MUSIK']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $ahmad->id, 'subject_id' => $subjects['B INDO']->id, 'kelas_id' => $kelas7B->id],
+
+            // Siti -> Bahasa Jawa (kelas 7A)
+            ['teacher_id' => $siti->id, 'subject_id' => $subjects['B JAWA']->id, 'kelas_id' => $kelas7A->id],
+
+            // Bambang -> IPS (kelas 7A, 8A, 9A)
+            ['teacher_id' => $bambang->id, 'subject_id' => $subjects['IPS']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $bambang->id, 'subject_id' => $subjects['IPS']->id, 'kelas_id' => $kelas8A->id],
+
+            // Rini -> TIK (kelas 7A)
+            ['teacher_id' => $rini->id, 'subject_id' => $subjects['TIK']->id, 'kelas_id' => $kelas7A->id],
+
+            // Hadi -> PJOK (kelas 7A, 7B)
+            ['teacher_id' => $hadi->id, 'subject_id' => $subjects['PJOK']->id, 'kelas_id' => $kelas7A->id],
+            ['teacher_id' => $hadi->id, 'subject_id' => $subjects['PJOK']->id, 'kelas_id' => $kelas7B->id],
+
+            // Wati -> Seni Musik (kelas 7A)
+            ['teacher_id' => $wati->id, 'subject_id' => $subjects['MUSIK']->id, 'kelas_id' => $kelas7A->id],
         ];
 
         $subTeachers = [];
@@ -190,15 +214,15 @@ class DatabaseSeeder extends Seeder
 
         // Genap 2025/2026 (Active Semester)
         $claraGradesGenap = [
-            'B INDO' => [90, 88, 92, 92], // avg: 90.5
-            'B ING' => [92, 94, 90, 95], // avg: 92.8
-            'B JAWA' => [84, 85, 88, 85], // avg: 85.5
-            'MTK' => [80, 78, 82, 85], // avg: 81.3
-            'IPA' => [88, 86, 90, 92], // avg: 89.0
-            'IPS' => [86, 88, 85, 90], // avg: 87.3
-            'TIK' => [92, 90, 95, 96], // avg: 93.3
-            'PJOK' => [88, 88, 85, 89], // avg: 87.5
-            'MUSIK' => [92, 90, 95, 92], // avg: 92.3
+            'B INDO' => [90, 88, 92, 92],
+            'B ING' => [92, 94, 90, 95],
+            'B JAWA' => [84, 85, 88, 85],
+            'MTK' => [80, 78, 82, 85],
+            'IPA' => [88, 86, 90, 92],
+            'IPS' => [86, 88, 85, 90],
+            'TIK' => [92, 90, 95, 96],
+            'PJOK' => [88, 88, 85, 89],
+            'MUSIK' => [92, 90, 95, 92],
         ];
 
         foreach ($claraGradesGenap as $kode => $vals) {
@@ -281,7 +305,6 @@ class DatabaseSeeder extends Seeder
         }
 
         // 8. Seed Evaluation Responses (Feedback from OTHER students to make dashboard rich)
-        // Let's seed feedback for MTK (Thomas) and IPA (Ndari) from Andi, Budi, and Chandra
         $commentsAndi = [
             'MTK' => 'Pak Thomas mengajarnya seru sekali, tapi kadang jalannya penjelasan rumus terlalu cepat.',
             'IPA' => 'Bu Ndari menjelaskan IPA dengan praktikum dan eksperimen yang seru!',
@@ -305,7 +328,6 @@ class DatabaseSeeder extends Seeder
             $student = $fb['student'];
             foreach ($fb['data'] as $subCode => $comment) {
                 $subject = $subjects[$subCode];
-                // Find subject teacher mapping
                 $st = SubjectTeacher::where('subject_id', $subject->id)
                     ->where('kelas_id', $student->kelas_id)
                     ->first();
@@ -318,12 +340,11 @@ class DatabaseSeeder extends Seeder
                         'semester' => 'Genap 2025/2026',
                     ]);
 
-                    // Seed scores (1 to 5)
                     foreach ($indModels as $ind) {
                         EvaluationScore::create([
                             'evaluation_response_id' => $response->id,
                             'indicator_id' => $ind->id,
-                            'score' => rand(4, 5), // Seed high ratings for demo
+                            'score' => rand(4, 5),
                         ]);
                     }
                 }

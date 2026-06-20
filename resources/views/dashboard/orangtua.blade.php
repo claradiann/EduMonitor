@@ -92,7 +92,7 @@
                                 <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: {{ $val > 0 ? $val : 0 }}%"></div>
                             </div>
                         </div>
-                    @endphp
+                    @endforeach
                 </div>
             </div>
         </div>

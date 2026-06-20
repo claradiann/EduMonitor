@@ -94,18 +94,18 @@
 
                 @elseif($role == 'admin')
                     <!-- User Management (Admin) -->
-                    <a href="#users-section" 
+                    <a href="{{ route('admin.users') }}" 
                        id="nav-users"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                        <i class="fa-solid fa-users-gear text-lg text-slate-400"></i>
+                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'admin.users' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                        <i class="fa-solid fa-users-gear text-lg {{ $route == 'admin.users' ? 'text-white' : 'text-slate-400' }}"></i>
                         <span>Manajemen User</span>
                     </a>
 
                     <!-- Rekap Kuesioner (Admin) -->
-                    <a href="#recap-section" 
+                    <a href="{{ route('admin.recap') }}" 
                        id="nav-recap"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
-                        <i class="fa-solid fa-file-invoice text-lg text-slate-400"></i>
+                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'admin.recap' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
+                        <i class="fa-solid fa-file-invoice text-lg {{ $route == 'admin.recap' ? 'text-white' : 'text-slate-400' }}"></i>
                         <span>Rekap Evaluasi</span>
                     </a>
                 @endif

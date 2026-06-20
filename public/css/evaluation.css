@@ -1,0 +1,11 @@
+.star-btn {
+    transition: transform 0.15s ease;
+}
+
+.star-btn:hover {
+    transform: scale(1.2);
+}
+
+.star-active {
+    color: #fbbf24 !important;
+}
