@@ -29,7 +29,8 @@ Route::middleware('auth')->group(function () {
 
     // Orang Tua Pages
     Route::get('/orangtua/profile', [DashboardController::class, 'orangTuaProfile'])->name('orangtua.profile');
-
+    Route::get('/orangtua/nilai', [DashboardController::class, 'orangTuaNilai'])->name('orangtua.nilai');
+    
     // Student Evaluation
     Route::get('/evaluation/fill/{subject_teacher_id}', [EvaluationController::class, 'showForm'])->name('evaluation.fill');
     Route::post('/evaluation/submit/{subject_teacher_id}', [EvaluationController::class, 'storeResponse'])->name('evaluation.submit');

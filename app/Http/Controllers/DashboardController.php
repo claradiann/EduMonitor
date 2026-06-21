@@ -401,6 +401,18 @@ class DashboardController extends Controller
 
         return view('dashboard.ortu-nilai', compact('student', 'kelas', 'grades', 'avgGrade', 'allSemesters', 'notes'));
     }
+    public function orangTuaProfile()
+{
+    $user = Auth::user();
+    if (!$user || $user->role !== 'orang_tua') {
+        abort(403);
+    }
+
+    $student = $user->student;
+    $kelas = $student->kelas ?? null;
+
+    return view('dashboard.ortu-profile', compact('user', 'student', 'kelas'));
+}
 
     /**
      * Helper: hitung rata-rata nilai dari koleksi Grade.
@@ -425,11 +437,11 @@ class DashboardController extends Controller
     private function getAllSemestersAverage($studentId)
     {
         $semestersData = Grade::where('student_id', $studentId)
-            ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) / (4 * COUNT(*)) as average'))
+            ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) * 1.0 / (4 * COUNT(*)) as semester_average'))
             ->groupBy('semester')
             ->get()
             ->mapWithKeys(function ($item) {
-                return [$item->semester => round($item->average, 1)];
+                return [$item->semester => round($item->semester_average, 1)];
             });
 
         return [

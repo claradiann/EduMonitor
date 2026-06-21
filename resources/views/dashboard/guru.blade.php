@@ -62,11 +62,12 @@
                 <button type="button"
                         onclick="openClassDetail({{ $index }})"
                         class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3 hover:bg-indigo-50 hover:border-indigo-200 transition-all hover-lift cursor-pointer text-left">
-                    <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 font-bold">
-                        {{ $cd['kelas'] }}
+                    <div class="w-10 h-10 shrink-0 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
+                        <i class="fa-solid fa-chalkboard text-base"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-slate-700 text-sm">{{ $cd['mapel'] }}</h4>
+                        <span class="inline-block text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-0.5">{{ $cd['kelas'] }}</span>
+                        <h4 class="font-bold text-slate-700 text-sm leading-tight">{{ $cd['mapel'] }}</h4>
                         <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{{ $cd['kode_mapel'] }}</p>
                     </div>
                     <i class="fa-solid fa-chevron-right text-slate-300 text-xs ml-2"></i>

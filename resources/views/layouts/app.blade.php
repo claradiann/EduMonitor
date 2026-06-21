@@ -38,7 +38,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-blue-600">EduMonitor</h1>
-                    <span class="text-xs font-semibold text-slate-400 tracking-wider uppercase">SMP System</span>
+                    <span class="text-xs font-semibold text-slate-400 tracking-wider uppercase">SMP Bopkri Satu</span>
                 </div>
             </div>
 
@@ -76,9 +76,9 @@
 
                 @elseif($role == 'orang_tua')
                     <!-- Nilai Anak (Orang Tua) -->
-                    <a href="#nilai-section" 
-                       id="nav-nilai"
-                       class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
+                    <a href="{{ route('orangtua.nilai') }}" 
+   id="nav-nilai"
+   class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all {{ $route == 'orangtua.nilai' ? 'sidebar-item-active shadow-md shadow-indigo-100' : '' }}">
                         <i class="fa-solid fa-chart-simple text-lg text-slate-400"></i>
                         <span>Nilai Siswa</span>
                     </a>
