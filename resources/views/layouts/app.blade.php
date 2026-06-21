@@ -80,7 +80,7 @@
                        id="nav-nilai"
                        class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-600 font-medium hover:bg-slate-50 transition-all">
                         <i class="fa-solid fa-chart-simple text-lg text-slate-400"></i>
-                        <span>Nilai Clara</span>
+                        <span>Nilai Siswa</span>
                     </a>
 
                 @elseif($role == 'guru')

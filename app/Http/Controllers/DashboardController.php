@@ -367,10 +367,11 @@ class DashboardController extends Controller
         return view('dashboard.admin-profile', compact('user'));
     }
 
+   
     /**
-     * Orang Tua: Halaman Profile (halaman terpisah).
+     * Orang Tua: Halaman Nilai Siswa (halaman terpisah).
      */
-    public function orangTuaProfile()
+    public function orangTuaNilai()
     {
         $user = Auth::user();
         if (!$user || $user->role !== 'orang_tua') {
@@ -378,9 +379,27 @@ class DashboardController extends Controller
         }
 
         $student = $user->student;
-        $kelas = $student?->kelas;
 
-        return view('dashboard.orangtua-profile', compact('user', 'student', 'kelas'));
+        if (!$student) {
+            return view('dashboard.ortu-nilai', ['student' => null]);
+        }
+
+        $kelas = $student->kelas;
+
+        $grades = Grade::where('student_id', $student->id)
+            ->where('semester', 'Genap 2025/2026')
+            ->with('subject')
+            ->get();
+
+        $avgGrade = $this->calculateAvgGrade($grades);
+        $allSemesters = $this->getAllSemestersAverage($student->id);
+
+        $notes = TeacherNote::where('student_id', $student->id)
+            ->with(['teacher', 'subject'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.ortu-nilai', compact('student', 'kelas', 'grades', 'avgGrade', 'allSemesters', 'notes'));
     }
 
     /**
@@ -439,35 +458,14 @@ class DashboardController extends Controller
             ->with('subject')
             ->get();
 
-        $avgGrade = 0;
-        if ($grades->count() > 0) {
-            $totalAvg = 0;
-            foreach ($grades as $g) {
-                $totalAvg += $g->average;
-            }
-            $avgGrade = round($totalAvg / $grades->count(), 1);
-        }
-
-        $semestersData = Grade::where('student_id', $student->id)
-            ->select('semester', DB::raw('SUM(nilai_tugas + nilai_uh + nilai_uts + nilai_uas) / (4 * COUNT(*)) as average'))
-            ->groupBy('semester')
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->semester => round($item->average, 1)];
-            });
-
-        $allSemesters = [
-            'Gasal 2025/2026' => $semestersData->get('Gasal 2025/2026', 0.0),
-            'Genap 2025/2026' => $semestersData->get('Genap 2025/2026', 0.0),
-            'Gasal 2026/2027' => $semestersData->get('Gasal 2026/2027', 0.0),
-            'Genap 2026/2027' => $semestersData->get('Genap 2026/2027', 0.0),
-        ];
+        $avgGrade = $this->calculateAvgGrade($grades);
 
         $notes = TeacherNote::where('student_id', $student->id)
             ->with(['teacher', 'subject'])
             ->orderBy('created_at', 'desc')
+            ->take(3)
             ->get();
 
-        return view('dashboard.orangtua', compact('student', 'kelas', 'grades', 'avgGrade', 'allSemesters', 'notes'));
+        return view('dashboard.orangtua', compact('student', 'kelas', 'grades', 'avgGrade', 'notes'));
     }
 }
