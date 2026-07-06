@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     
     // Guru Pages
     Route::get('/guru/feedback', [DashboardController::class, 'guruFeedback'])->name('guru.feedback');
+    Route::post('/guru/input-nilai', [DashboardController::class, 'storeNilaiKomentar'])->name('guru.input-nilai');
 
     // Admin User Management
     Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');

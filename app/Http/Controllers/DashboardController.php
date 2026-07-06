@@ -13,6 +13,7 @@ use App\Models\EvaluationResponse;
 use App\Models\EvaluationScore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -214,6 +215,7 @@ class DashboardController extends Controller
 
             $studentList = $students->map(function ($s) use ($stResponses) {
                 return [
+                    'id' => $s->id,
                     'name' => $s->name,
                     'nisn' => $s->nisn ?? '-',
                     'sudah_evaluasi' => $stResponses->where('student_id', $s->id)->isNotEmpty(),
@@ -222,6 +224,7 @@ class DashboardController extends Controller
 
             return [
                 'subject_teacher_id' => $st->id,
+                'subject_id' => $st->subject_id,
                 'kelas' => $st->kelas->nama_kelas,
                 'mapel' => $st->subject->nama_mapel,
                 'kode_mapel' => $st->subject->kode_mapel,
@@ -278,7 +281,9 @@ class DashboardController extends Controller
 
         $grades = Grade::where('student_id', $user->id)
             ->where('semester', 'Genap 2025/2026')
-            ->with('subject')
+            ->with(['subject.subjectTeachers' => function($query) use ($kelas) {
+                $query->where('kelas_id', $kelas->id)->with('teacher');
+            }])
             ->get();
 
         $avgGrade = $this->calculateAvgGrade($grades);
@@ -479,5 +484,74 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard.orangtua', compact('student', 'kelas', 'grades', 'avgGrade', 'notes'));
+    }
+
+    /**
+     * Guru: Input Nilai & Komentar (Realtime API)
+     */
+    public function storeNilaiKomentar(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'guru') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:users,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'jenis_nilai' => 'required|in:nilai_tugas,nilai_uh,nilai_uts,nilai_uas',
+            'skor'       => 'required|numeric|min:0|max:100',
+            'komentar'   => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            // Update atau create grade
+            $grade = Grade::firstOrNew([
+                'student_id' => $request->student_id,
+                'subject_id' => $request->subject_id,
+                'semester'   => 'Genap 2025/2026',
+            ]);
+
+            $field = $request->jenis_nilai;
+            $grade->$field = (int) $request->skor;
+            $grade->save();
+
+            // Tambah catatan jika ada komentar
+            if (!empty($request->komentar)) {
+                $jenisLabel = match ($request->jenis_nilai) {
+                    'nilai_tugas' => 'Tugas/Kuis',
+                    'nilai_uh'   => 'Ulangan Harian',
+                    'nilai_uts'  => 'UTS',
+                    'nilai_uas'  => 'UAS',
+                    default      => 'Nilai',
+                };
+                $komentarFull = "Memberikan nilai {$jenisLabel}: {$request->skor}\nKomentar: {$request->komentar}";
+
+                TeacherNote::create([
+                    'student_id' => $request->student_id,
+                    'teacher_id' => $user->id,
+                    'subject_id' => $request->subject_id,
+                    'catatan'    => $komentarFull,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Nilai dan komentar berhasil disimpan.',
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

@@ -32,7 +32,7 @@
         </div>
 
         <!-- Mapel Count -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between">
+        <div onclick="openMapelModal()" class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300">
             <div>
                 <h3 class="font-bold text-slate-400 text-sm tracking-wider uppercase">Mapel Diambil</h3>
                 <p class="text-5xl font-extrabold text-slate-700 mt-2">{{ $grades->count() }}</p>
@@ -117,7 +117,7 @@
             @forelse($notes as $note)
                 <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-50/20 text-slate-700 text-sm leading-relaxed">
                     <span class="font-bold text-indigo-600">{{ $note->teacher->name }} - {{ $note->subject->kode_mapel }}</span>:
-                    <p class="mt-1 text-slate-600">{{ $note->catatan }}</p>
+                    <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ $note->catatan }}</p>
                 </div>
             @empty
                 <p class="text-slate-400 text-sm font-medium">Belum ada catatan dari guru.</p>
@@ -125,6 +125,82 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Mapel Diambil -->
+<div id="mapelModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center transition-all duration-300 opacity-0">
+    <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-lg mx-4 shadow-2xl transform scale-95 transition-transform duration-300" id="mapelModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-slate-800">Daftar Mata Pelajaran</h3>
+            <button onclick="closeMapelModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            @foreach($grades as $grade)
+                @php
+                    $subject = $grade->subject;
+                    $st = $subject->subjectTeachers->first();
+                    $teacherName = $st ? $st->teacher->name : 'Belum Ditentukan';
+                @endphp
+                <div class="border border-slate-100 rounded-2xl overflow-hidden transition-all duration-300">
+                    <button onclick="toggleMapelDetail('mapel-{{ $subject->id }}')" class="w-full text-left px-5 py-4 bg-slate-50 hover:bg-slate-100 flex items-center justify-between transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                                {{ substr($subject->nama_mapel, 0, 1) }}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">{{ $subject->nama_mapel }}</h4>
+                                <span class="text-xs text-slate-400 font-medium">{{ $subject->kode_mapel }}</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300" id="icon-mapel-{{ $subject->id }}"></i>
+                    </button>
+                    
+                    <div id="mapel-{{ $subject->id }}" class="hidden px-5 py-4 bg-white border-t border-slate-100">
+                        <div class="space-y-3">
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Guru Pengampu</p>
+                                    <p class="text-sm text-slate-700 font-semibold mt-0.5">{{ $teacherName }}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Jadwal Kelas</p>
+                                    <p class="text-sm text-slate-700 font-semibold mt-0.5">Jadwal belum ditentukan</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
 @endsection
 
 @section('scripts')
@@ -133,6 +209,46 @@
         labels: {!! json_encode($grades->map(fn($g) => $g->subject->kode_mapel)) !!},
         data: {!! json_encode($grades->map(fn($g) => $g->average)) !!}
     };
+
+    // Modal Logic
+    const modal = document.getElementById('mapelModal');
+    const modalContent = document.getElementById('mapelModalContent');
+
+    function openMapelModal() {
+        modal.classList.remove('hidden');
+        // Trigger reflow
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('scale-95');
+    }
+
+    function closeMapelModal() {
+        modal.classList.add('opacity-0');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function toggleMapelDetail(id) {
+        const detailEl = document.getElementById(id);
+        const iconEl = document.getElementById('icon-' + id);
+        
+        if (detailEl.classList.contains('hidden')) {
+            detailEl.classList.remove('hidden');
+            iconEl.classList.add('rotate-180');
+        } else {
+            detailEl.classList.add('hidden');
+            iconEl.classList.remove('rotate-180');
+        }
+    }
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeMapelModal();
+        }
+    });
 </script>
 <script src="{{ asset('js/dashboard.js') }}"></script>
 @endsection

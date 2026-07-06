@@ -29,11 +29,13 @@
                     </div>
                     <div>
                         @if($st['evaluated'])
-                            <span class="...bg-emerald-50 text-emerald-600...">
+                            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-sm font-bold px-4 py-2 rounded-xl border border-emerald-100">
                                 <i class="fa-solid fa-circle-check"></i> Sudah Dievaluasi
                             </span>
                         @else
-                            <a href="{{ route('evaluation.fill', $st['id']) }}" class="bg-indigo-600 text-white text-xs font-bold rounded-xl">Isi Evaluasi</a>
+                            <a href="{{ route('evaluation.fill', $st['id']) }}" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-2 rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                                Isi Evaluasi <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
                         @endif
                     </div>
                 </div>

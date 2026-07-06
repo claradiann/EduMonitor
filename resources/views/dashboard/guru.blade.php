@@ -139,12 +139,14 @@
                     ? '<span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600">Sudah Isi</span>'
                     : '<span class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-600">Belum Isi</span>';
 
+                const btnInput = `<button onclick="openInputNilaiModal(${s.id}, ${cd.subject_id}, '${s.name}')" class="text-[10px] font-bold uppercase px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors">Beri Nilai</button>`;
+
                 row.innerHTML =
                     '<div>' +
                         '<p class="text-sm font-bold text-slate-700">' + s.name + '</p>' +
                         '<p class="text-[11px] text-slate-400">NISN: ' + s.nisn + '</p>' +
                     '</div>' +
-                    badge;
+                    '<div class="flex items-center gap-2">' + badge + btnInput + '</div>';
 
                 listEl.appendChild(row);
             });
@@ -160,5 +162,115 @@
         document.getElementById('class-detail-modal').classList.add('hidden');
         document.getElementById('class-detail-modal').classList.remove('flex');
     }
+
+    // Input Nilai Logic
+    function openInputNilaiModal(studentId, subjectId, studentName) {
+        document.getElementById('in-student-id').value = studentId;
+        document.getElementById('in-subject-id').value = subjectId;
+        document.getElementById('in-student-name').textContent = studentName;
+        
+        document.getElementById('input-nilai-overlay').classList.remove('hidden');
+        document.getElementById('input-nilai-modal').classList.remove('hidden');
+        document.getElementById('input-nilai-modal').classList.add('flex');
+    }
+
+    function closeInputNilaiModal() {
+        document.getElementById('input-nilai-overlay').classList.add('hidden');
+        document.getElementById('input-nilai-modal').classList.add('hidden');
+        document.getElementById('input-nilai-modal').classList.remove('flex');
+        document.getElementById('form-input-nilai').reset();
+    }
+
+    document.getElementById('form-input-nilai').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btnSubmit = document.getElementById('btn-submit-nilai');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+        const formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch("{{ route('guru.input-nilai') }}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(function(response) {
+            return response.text().then(function(text) {
+                try {
+                    return { ok: response.ok, data: JSON.parse(text) };
+                } catch(e) {
+                    return { ok: false, data: { success: false, message: 'Server error: ' + text.substring(0, 200) } };
+                }
+            });
+        })
+        .then(function(result) {
+            if (result.data.success) {
+                alert('✅ ' + result.data.message);
+                closeInputNilaiModal();
+            } else {
+                alert('❌ ' + (result.data.message || 'Gagal menyimpan data'));
+            }
+        })
+        .catch(function(error) {
+            console.error('Fetch error:', error);
+            alert('❌ Terjadi kesalahan jaringan: ' + error.message);
+        })
+        .finally(function() {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Simpan Nilai';
+        });
+    });
 </script>
+
+<!-- Modal Input Nilai -->
+<div id="input-nilai-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden" onclick="closeInputNilaiModal()"></div>
+<div id="input-nilai-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 pointer-events-none">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md pointer-events-auto overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-indigo-50/50">
+            <div>
+                <h3 class="text-lg font-bold text-slate-800">Input Nilai & Komentar</h3>
+                <p id="in-student-name" class="text-sm text-indigo-600 font-semibold mt-0.5"></p>
+            </div>
+            <button type="button" onclick="closeInputNilaiModal()" class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <form id="form-input-nilai" class="p-6 space-y-4">
+            <input type="hidden" name="student_id" id="in-student-id">
+            <input type="hidden" name="subject_id" id="in-subject-id">
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Jenis Nilai</label>
+                <select name="jenis_nilai" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    <option value="nilai_tugas">Nilai Tugas / Kuis</option>
+                    <option value="nilai_uh">Nilai Ulangan Harian</option>
+                    <option value="nilai_uts">Nilai UTS</option>
+                    <option value="nilai_uas">Nilai UAS</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Skor (0-100)</label>
+                <input type="number" name="skor" min="0" max="100" required placeholder="Contoh: 85" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Komentar Khusus Siswa</label>
+                <textarea name="komentar" rows="3" placeholder="Berikan komentar, masukan, atau apresiasi untuk siswa ini..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"></textarea>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="btn-submit-nilai" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-indigo-200 flex items-center justify-center gap-2">
+                    Simpan Nilai
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

@@ -73,7 +73,7 @@
                 @forelse($notes as $note)
                     <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-50/20 text-slate-700 text-sm leading-relaxed">
                         <span class="font-bold text-indigo-600">{{ $note->teacher->name }} - {{ $note->subject->kode_mapel }}</span>:
-                        <p class="mt-1 text-slate-600">{{ $note->catatan }}</p>
+                        <p class="mt-1 text-slate-600 whitespace-pre-wrap">{{ $note->catatan }}</p>
                     </div>
                 @empty
                     <p class="text-slate-400 text-sm font-medium">Belum ada catatan dari guru semester ini.</p>
