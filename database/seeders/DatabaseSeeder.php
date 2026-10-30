@@ -350,5 +350,9 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+    
+        // Data contoh fitur pemantauan (rancangan pengajaran, status penilaian, laporan insidental)
+        $this->call(MonitoringDemoSeeder::class);
     }
+
 }
