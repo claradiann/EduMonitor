@@ -1,88 +1,75 @@
 @extends('layouts.app')
 
-@section('title', 'Rekap Evaluasi - EduMonitor')
+@section('title', 'Rekap Kinerja Guru - EduMonitor')
+
+@php($lama = function ($menit) {
+    if (!$menit) return '-';
+    $hari = intdiv($menit, 1440); $jam = intdiv($menit % 1440, 60);
+    return trim(($hari ? $hari . ' hari ' : '') . ($jam ? $jam . ' jam' : ($hari ? '' : '< 1 jam')));
+})
 
 @section('content')
 <div class="space-y-6">
-
-    <!-- Heading -->
     <div>
-        <h2 class="text-2xl font-bold text-slate-800">Rekap Evaluasi</h2>
-        <p class="text-slate-400 text-sm mt-1">Pantau kualitas pengajaran melalui rekap kuesioner evaluasi siswa.</p>
+        <h1 class="page-title">Rekap Kinerja Guru</h1>
+        <p class="page-sub">Semester {{ $semester }}. Hanya dapat dilihat admin.</p>
     </div>
 
-    <div id="recap-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="rounded-xl bg-brand-50 border border-brand-100 px-4 py-3 text-sm text-brand-800">
+        Skor evaluasi berasal dari penilaian siswa (skala 1 sampai 5). Keterlambatan unggah nilai, buka akses, dan laporan insidental dicatat terpisah sebagai bahan penilaian dari sisi manajemen sekolah.
+    </div>
 
-        <!-- Rata-rata Skor per Indikator Sekolah -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm lg:col-span-5">
-            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-5">Poin Rata-rata Sekolah Per Indikator</h3>
-            <div class="space-y-5">
-                @foreach($indicators as $ind)
-                    <div>
-                        <div class="flex justify-between items-center mb-1.5 text-xs font-semibold text-slate-500">
-                            <span>{{ $ind['name'] }}</span>
-                            <span class="text-indigo-600 font-bold">{{ $ind['average'] }}</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-indigo-500 h-full rounded-full transition-all" style="width: {{ ($ind['average'] / 5) * 100 }}%"></div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-        <!-- Rankings/Peringkat Guru -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm lg:col-span-7">
-            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-5">Peringkat & Rekap Nilai Evaluasi Guru</h3>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase">
-                            <th class="py-3 px-2">Guru</th>
-                            <th class="py-3 px-2 text-center">Rata-rata Skor</th>
-                            <th class="py-3 px-2 text-center">Kuesioner Masuk</th>
-                            <th class="py-3 px-2 text-right">Predikat</th>
+    <section class="card overflow-hidden">
+        <div class="tbl-wrap">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Guru</th>
+                        <th class="num">Skor evaluasi</th>
+                        <th class="num">Penilaian</th>
+                        <th class="num">Terlambat unggah</th>
+                        <th class="num">Total keterlambatan</th>
+                        <th class="num">Buka akses</th>
+                        <th class="num">Laporan insidental</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($guru as $g)
+                        <tr>
+                            <td>
+                                <p class="font-bold text-slate-800 whitespace-nowrap">{{ $g['name'] }}</p>
+                                <p class="text-xs text-slate-400">
+                                    @foreach($g['kelas'] as $k){{ $k['label'] }}: {{ $k['rata'] !== null ? str_replace('.', ',', $k['rata']) : '-' }}@if(!$loop->last) &middot; @endif @endforeach
+                                </p>
+                            </td>
+                            <td class="num">
+                                <span class="font-extrabold text-slate-800">{{ $g['skor'] !== null ? str_replace('.', ',', $g['skor']) : '-' }}</span>
+                                <span class="block text-xs text-slate-400">{{ $g['responden'] }} responden</span>
+                            </td>
+                            <td class="num">{{ $g['penilaian'] }}</td>
+                            <td class="num"><span class="{{ $g['terlambat'] ? 'badge badge-rose' : 'text-slate-400' }}">{{ $g['terlambat'] }}</span></td>
+                            <td class="num whitespace-nowrap">{{ $lama($g['lama_terlambat']) }}</td>
+                            <td class="num">{{ $g['buka_akses'] ?: '-' }}</td>
+                            <td class="num">{{ $g['laporan'] ?: '-' }}</td>
                         </tr>
-                    </thead>
-                    <tbody class="text-sm font-medium text-slate-600">
-                        @forelse($teachersEvaluations as $t)
-                            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                <td class="py-4 px-2">
-                                    <div class="font-bold text-slate-700">{{ $t['name'] }}</div>
-                                    <div class="text-xs text-slate-400 font-semibold">{{ $t['nip'] }}</div>
-                                </td>
-                                <td class="py-4 px-2 text-center font-bold text-indigo-600">
-                                    <div class="flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-star text-amber-400 text-xs"></i>
-                                        <span>{{ $t['average_rating'] }}</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-2 text-center text-slate-500">
-                                    {{ $t['responses_count'] }} ulasan
-                                </td>
-                                <td class="py-4 px-2 text-right">
-                                    @if($t['average_rating'] >= 4.5)
-                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold">Sangat Baik</span>
-                                    @elseif($t['average_rating'] >= 4.0)
-                                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold">Baik</span>
-                                    @elseif($t['average_rating'] > 0)
-                                        <span class="px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold">Cukup</span>
-                                    @else
-                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-full text-xs font-semibold">Belum Dinilai</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-6 text-slate-400 font-medium">Data evaluasi guru belum tersedia.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </div>
+        <p class="px-5 py-3 text-xs text-slate-400 border-t border-[color:var(--line)]">Angka di bawah nama guru adalah rata-rata nilai akhir siswa per kelas yang diampu.</p>
+    </section>
 
+    <section class="card card-pad">
+        <h2 class="card-title mb-4">Rata-rata per aspek evaluasi (seluruh guru)</h2>
+        <div class="space-y-3">
+            @foreach($indicators as $i)
+                <div class="flex items-center gap-3">
+                    <span class="w-48 sm:w-64 text-sm font-semibold text-slate-600 shrink-0">{{ $i['name'] }}</span>
+                    <div class="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-brand-500" style="width: {{ $i['average'] / 5 * 100 }}%"></div></div>
+                    <span class="w-10 text-right font-bold tabular-nums">{{ $i['average'] ? str_replace('.', ',', $i['average']) : '-' }}</span>
+                </div>
+            @endforeach
+        </div>
+    </section>
 </div>
 @endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EvaluationIndicator;
 use App\Models\EvaluationResponse;
 use App\Models\EvaluationScore;
+use App\Models\Setting;
 use App\Models\SubjectTeacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,7 @@ class EvaluationController extends Controller
         // Check if student has already evaluated this teacher this semester
         $alreadyEvaluated = EvaluationResponse::where('student_id', $student->id)
             ->where('subject_teacher_id', $subject_teacher_id)
-            ->where('semester', 'Genap 2025/2026')
+            ->where('semester', Setting::semesterAktif())
             ->exists();
 
         if ($alreadyEvaluated) {
@@ -62,7 +63,7 @@ class EvaluationController extends Controller
         // Check again
         $alreadyEvaluated = EvaluationResponse::where('student_id', $student->id)
             ->where('subject_teacher_id', $subject_teacher_id)
-            ->where('semester', 'Genap 2025/2026')
+            ->where('semester', Setting::semesterAktif())
             ->exists();
 
         if ($alreadyEvaluated) {
@@ -86,7 +87,7 @@ class EvaluationController extends Controller
             'student_id' => $student->id,
             'subject_teacher_id' => $subject_teacher_id,
             'comments' => $request->comments,
-            'semester' => 'Genap 2025/2026',
+            'semester' => Setting::semesterAktif(),
         ]);
 
         // Save Scores
