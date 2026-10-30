@@ -162,6 +162,29 @@
         </section>
     </div>
 
+        <!-- Laporan dari guru -->
+    @if($laporanGuru->isNotEmpty())
+        <section>
+            <div class="section-head">
+                <h2 class="section-title"><span class="ikon-judul soga"><i class="fa-solid fa-file-lines"></i></span>Laporan dari guru</h2>
+                <a href="{{ route('laporan') }}" class="section-link">Semua laporan</a>
+            </div>
+            <div class="card rows overflow-hidden">
+                @foreach($laporanGuru as $ls)
+                    @php($baru = $ortu && !$ls->dibacaOleh(Auth::id()))
+                    <a href="{{ route('laporan.show', $ls) }}" class="row {{ $baru ? 'bg-soga-50/60' : '' }}">
+                        <span class="min-w-0 flex-1">
+                            <span class="block font-bold text-slate-900 truncate">{{ $ls->laporan->judul }}</span>
+                            <span class="block text-sm text-slate-600 truncate">{{ $ls->laporan->pengirim->name ?? '-' }} &middot; {{ $ls->laporan->created_at->translatedFormat('d M Y') }}{{ $ls->catatan ? ' · ada catatan khusus' : '' }}</span>
+                        </span>
+                        @if($baru)<span class="badge badge-amber">Baru</span>@endif
+                        <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <div class="grid lg:grid-cols-2 gap-7">
         <!-- Nilai terbaru -->
         <section>

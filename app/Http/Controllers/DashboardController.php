@@ -10,6 +10,8 @@ use App\Models\EvaluationScore;
 use App\Models\Grade;
 use App\Models\IncidentReport;
 use App\Models\Kelas;
+use App\Models\LaporanPerkembangan;
+use App\Models\LaporanSiswa;
 use App\Models\Setting;
 use App\Models\SubjectTeacher;
 use App\Models\UploadUnlock;
@@ -168,25 +170,24 @@ class DashboardController extends Controller
             ->get();
 
         $kelas = $subjectTeachers->map(function ($st) {
-            $siswa = User::where('role', 'siswa')->where('kelas_id', $st->kelas_id)->with('parents')->get();
-            $status = $st->assessments->map(fn ($a) => $a->statusKelas($siswa->count()))->countBy();
+        $jumlahSiswa = User::where('role', 'siswa')->where('kelas_id', $st->kelas_id)->count();
+        $status = $st->assessments->map(fn ($a) => $a->statusKelas($jumlahSiswa))->countBy();
 
-            // Status baca: orang tua membuka laporan setelah nilai terakhir anaknya diperbarui
-            $nilaiTerakhir = Grade::whereIn('student_id', $siswa->pluck('id'))->where('subject_id', $st->subject_id)
-                ->pluck('updated_at', 'student_id');
-            $ortu = $siswa->flatMap(fn ($s) => $s->parents->map(fn ($p) => ['ortu' => $p, 'siswa' => $s->id]));
-            $sudahBaca = $ortu->filter(fn ($o) => $o['ortu']->report_read_at
-                && (!isset($nilaiTerakhir[$o['siswa']]) || $o['ortu']->report_read_at->gte($nilaiTerakhir[$o['siswa']])))->count();
+        // Status baca laporan terakhir yang dikirim ke orang tua
+        $laporan = LaporanPerkembangan::where('subject_teacher_id', $st->id)
+            ->with(['siswa.student.parents', 'siswa.dibaca'])->latest()->first();
+        [$ortuBaca, $ortuTotal] = $laporan ? $laporan->keterbacaan() : [0, 0];
 
-            return [
-                'st' => $st,
-                'siswa' => $siswa->count(),
-                'status' => $status,
-                'ortu_total' => $ortu->count(),
-                'ortu_baca' => $sudahBaca,
-                // Grafik: rata-rata nilai kelas untuk tiap penilaian yang sudah dinilai
-                'grafik' => $st->assessments->filter(fn ($a) => $a->scores->isNotEmpty())->sortBy('tanggal')
-                    ->map(fn ($a) => ['label' => $a->judul, 'rata' => round($a->scores->avg('nilai_konversi'), 1)])->values(),
+        return [
+            'st' => $st,
+            'siswa' => $jumlahSiswa,
+            'status' => $status,
+            'laporan' => $laporan,
+            'ortu_total' => $ortuTotal,
+            'ortu_baca' => $ortuBaca,
+            // Grafik: rata-rata nilai kelas untuk tiap penilaian yang sudah dinilai
+            'grafik' => $st->assessments->filter(fn ($a) => $a->scores->isNotEmpty())->sortBy('tanggal')
+                ->map(fn ($a) => ['label' => $a->judul, 'rata' => round($a->scores->avg('nilai_konversi'), 1)])->values(),
             ];
         });
 
@@ -243,6 +244,8 @@ class DashboardController extends Controller
         $student = $user->siswaDipantau();
         if (!$student) {
             return view('dashboard.pantau', ['student' => null]);
+                        'laporanGuru' => LaporanSiswa::where('student_id', $student->id)
+                ->with(['laporan.pengirim', 'dibaca'])->latest()->take(3)->get(),
         }
 
         $semester = Setting::semesterAktif();

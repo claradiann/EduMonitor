@@ -82,14 +82,16 @@
                             @endforeach
                         </div>
                     @endif
-                    @if($k['ortu_total'] > 0)
+                    @if($k['laporan'] && $k['ortu_total'] > 0)
                         <div class="mt-3">
-                            <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1">
-                                <span><i class="fa-solid fa-check-double mr-1"></i>Orang tua sudah membaca nilai terbaru</span>
-                                <span>{{ $k['ortu_baca'] }}/{{ $k['ortu_total'] }}</span>
+                            <div class="flex justify-between gap-3 text-xs font-semibold text-slate-600 mb-1">
+                                <span class="truncate"><i class="fa-solid fa-check-double mr-1"></i>Laporan "{{ $k['laporan']->judul }}" dibaca orang tua</span>
+                                <span class="tabular shrink-0">{{ $k['ortu_baca'] }}/{{ $k['ortu_total'] }}</span>
                             </div>
                             <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full bg-nila-600 rounded-full" style="width: {{ round($k['ortu_baca'] / $k['ortu_total'] * 100) }}%"></div></div>
                         </div>
+                    @elseif($k['siswa'] > 0)
+                        <p class="text-xs font-semibold text-slate-500 mt-3"><i class="fa-regular fa-envelope mr-1"></i>Belum ada laporan yang dikirim ke orang tua kelas ini.</p>
                     @endif
                 </a>
             @endforeach
