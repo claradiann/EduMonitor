@@ -1,26 +1,17 @@
+// Warna utama EduMonitor (hijau toska). Warna "indigo" lama diarahkan ke warna utama
+// supaya halaman lama ikut seragam tanpa perlu diubah satu per satu.
+const brand = {
+    50: '#eef7f5', 100: '#d5ede8', 200: '#acdad2', 300: '#78bfb3', 400: '#479f92',
+    500: '#2a8477', 600: '#1f6b61', 700: '#1c5750', 800: '#1a4742', 900: '#183b37',
+};
+
 tailwind.config = {
     theme: {
         extend: {
-            colors: {
-                brand: {
-                    50: '#f5f3ff',
-                    100: '#ede9fe',
-                    200: '#ddd6fe',
-                    300: '#c084fc',
-                    400: '#a78bfa',
-                    500: '#6366f1',
-                    600: '#4f46e5',
-                    700: '#4338ca',
-                    800: '#3730a3',
-                    900: '#312e81',
-                },
-                danger: {
-                    500: '#e11d48',
-                }
-            },
+            colors: { brand, indigo: brand, blue: brand },
             fontFamily: {
-                sans: ['Outfit', 'Inter', 'sans-serif'],
-            }
-        }
-    }
-}
+                sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            },
+        },
+    },
+};
