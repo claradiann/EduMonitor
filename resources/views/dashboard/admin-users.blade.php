@@ -65,7 +65,7 @@
                                     @elseif($usr->role == 'guru')
                                         NIP: {{ $usr->nip ?? '-' }}
                                     @elseif($usr->role == 'orang_tua')
-                                        Wali dari: {{ $usr->student->name ?? '-' }}
+                                        Wali dari: {{ $usr->children->pluck('name')->join(', ') ?: '-' }}
                                     @else
                                         -
                                     @endif
@@ -162,7 +162,8 @@
 
                 <div id="add_parent_fields" class="space-y-1.5 hidden">
                     <label class="text-xs font-bold text-slate-600">Wali Dari (Siswa)</label>
-                    <select name="parent_of_id" id="add_parent_of_id" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-slate-700 text-sm">
+                    <p class="text-[11px] text-slate-400">Tahan Ctrl (atau Cmd di Mac) untuk memilih lebih dari satu anak.</p>
+                    <select name="parent_of_ids[]" id="add_parent_of_id" multiple size="5" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-slate-700 text-sm">
                         @foreach($usersList->where('role', 'siswa') as $siswa)
                             <option value="{{ $siswa->id }}">{{ $siswa->name }} (NISN: {{ $siswa->nisn }})</option>
                         @endforeach

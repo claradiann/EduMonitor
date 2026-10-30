@@ -9,20 +9,14 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Show admin user management page.
-     */
     public function index()
     {
-        $usersList = User::with('kelas')->orderBy('role')->orderBy('name')->get();
+        $usersList = User::with(['kelas', 'children'])->orderBy('role')->orderBy('name')->get();
         $kelas = Kelas::all();
 
         return view('dashboard.admin-users', compact('usersList', 'kelas'));
     }
 
-    /**
-     * Store a new user (admin, guru, siswa, orang_tua).
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -34,7 +28,8 @@ class UserController extends Controller
             'nisn' => 'nullable|string|required_if:role,siswa',
             'nip' => 'nullable|string|required_if:role,guru',
             'kelas_id' => 'nullable|exists:kelas,id|required_if:role,siswa',
-            'parent_of_id' => 'nullable|exists:users,id',
+            'parent_of_ids' => 'nullable|array',
+            'parent_of_ids.*' => 'exists:users,id',
         ]);
 
         $userData = [
@@ -46,17 +41,19 @@ class UserController extends Controller
             'nisn' => $request->role === 'siswa' ? $request->nisn : null,
             'nip' => $request->role === 'guru' ? $request->nip : null,
             'kelas_id' => $request->role === 'siswa' ? $request->kelas_id : null,
-            'parent_of_id' => $request->role === 'orang_tua' ? $request->parent_of_id : null,
+            'parent_of_id' => $request->role === 'orang_tua' ? ($request->parent_of_ids[0] ?? null) : null,
         ];
 
-        User::create($userData);
+        $user = User::create($userData);
+
+        // Orang tua bisa memiliki lebih dari satu anak (kakak-adik)
+        if ($user->role === 'orang_tua') {
+            $user->children()->sync($request->input('parent_of_ids', []));
+        }
 
         return redirect()->route('admin.users')->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
-    /**
-     * Update an existing user.
-     */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -68,6 +65,8 @@ class UserController extends Controller
             'nisn' => 'nullable|string|required_if:role,siswa',
             'nip' => 'nullable|string|required_if:role,guru',
             'kelas_id' => 'nullable|exists:kelas,id|required_if:role,siswa',
+            'parent_of_ids' => 'nullable|array',
+            'parent_of_ids.*' => 'exists:users,id',
         ]);
 
         $user->name = $request->name;
@@ -83,12 +82,13 @@ class UserController extends Controller
 
         $user->save();
 
+        if ($user->role === 'orang_tua' && $request->has('parent_of_ids')) {
+            $user->children()->sync($request->input('parent_of_ids', []));
+        }
+
         return redirect()->route('admin.users')->with('success', 'Data pengguna berhasil diperbarui!');
     }
 
-    /**
-     * Delete a user.
-     */
     public function destroy($id)
     {
         $user = User::findOrFail($id);
