@@ -9,11 +9,15 @@ use App\Models\EkskulAnggota;
 use App\Models\Ekstrakurikuler;
 use App\Models\IncidentReport;
 use App\Models\Kelas;
+use App\Models\LaporanDibaca;
+use App\Models\LaporanPerkembangan;
+use App\Models\LaporanSiswa;
 use App\Models\Notifikasi;
 use App\Models\Setting;
 use App\Models\SubjectTeacher;
 use App\Models\UploadUnlock;
 use App\Models\User;
+use App\Services\NilaiService;
 use App\Services\NilaiService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -78,8 +82,13 @@ class MonitoringDemoSeeder extends Seeder
                     foreach ($st->students() as $k => $s) {
                         NilaiService::simpanSkor($a, $s->id, round($maks * (0.68 + (($k * 7 + $s->id + $i * 3) % 28) / 100), 1));
                     }
-                    // anggap nilai diunggah 2 hari setelah penilaian (tepat waktu)
-                    $a->scores()->update(['created_at' => $a->tanggal->copy()->addDays(2), 'updated_at' => $a->tanggal->copy()->addDays(2)]);
+                    
+                // anggap nilai diunggah 2 hari setelah penilaian (tepat waktu).
+                // Tanda terlambat dihapus karena data contoh ini dibuat hari ini, bukan saat penilaian.
+                $a->scores()->update([
+                    'created_at' => $a->tanggal->copy()->addDays(2), 'updated_at' => $a->tanggal->copy()->addDays(2),
+                    'terlambat' => false, 'terlambat_menit' => null,
+                    ]);
                 }
             }
 
@@ -131,6 +140,40 @@ class MonitoringDemoSeeder extends Seeder
                 'student_id' => $clara->id, 'subject_teacher_id' => $mtk->id, 'tanggal' => today()->subDays(2),
                 'jenis' => 'jam_kosong', 'keterangan' => 'Jam ke-3 tidak ada guru dan tidak ada tugas pengganti.',
             ]);
+        }
+
+        // Laporan perkembangan dari Pak Thomas (Matematika Bab 1) ke orang tua kelas Clara.
+        // Satu orang tua sudah membaca, Pak Budi (orang tua Clara) belum.
+        $andi = User::where('username', 'andi')->first();
+        $sri = User::create([
+            'name' => 'Ibu Sri Lestari', 'email' => 'sri@edumonitor.sch.id', 'username' => 'sri',
+            'role' => 'orang_tua', 'password' => Hash::make('password'),
+        ]);
+        if ($andi) {
+            $sri->children()->sync([$andi->id]);
+        }
+        $laporanMtk = null;
+        if ($mtk) {
+            $laporanMtk = LaporanPerkembangan::create([
+                'subject_teacher_id' => $mtk->id, 'semester' => $semester, 'bab' => 1,
+                'judul' => 'Matematika Bab 1', 'dikirim_oleh' => $thomas->id,
+                'pesan' => 'Bab 1 tentang bilangan bulat sudah selesai. Mohon dampingi anak berlatih soal operasi hitung campuran di rumah.',
+            ]);
+            $isi = LaporanService::susunIsi($mtk, 1, $semester);
+            $catatan = [
+                $clara->id => 'Sudah memahami konsep, tetapi masih sering keliru pada operasi bilangan negatif. Perlu latihan tambahan.',
+                $andi?->id => 'Aktif bertanya dan tugas selalu lengkap. Pertahankan.',
+            ];
+            foreach ($mtk->students() as $s) {
+                $ls = LaporanSiswa::create([
+                    'laporan_perkembangan_id' => $laporanMtk->id, 'student_id' => $s->id,
+                    'isi' => $isi[$s->id], 'catatan' => $catatan[$s->id] ?? null,
+                ]);
+                if ($andi && $s->id === $andi->id) {
+                    LaporanDibaca::create(['laporan_siswa_id' => $ls->id, 'user_id' => $sri->id, 'dibaca_at' => now()->subDays(2)]);
+                }
+            }
+            $laporanMtk->forceFill(['created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3)])->save();
         }
 
         // Notifikasi contoh (notifikasi otomatis dari data di atas diganti agar rapi)
