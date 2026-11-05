@@ -170,24 +170,24 @@ class DashboardController extends Controller
             ->get();
 
         $kelas = $subjectTeachers->map(function ($st) {
-        $jumlahSiswa = User::where('role', 'siswa')->where('kelas_id', $st->kelas_id)->count();
-        $status = $st->assessments->map(fn ($a) => $a->statusKelas($jumlahSiswa))->countBy();
+            $jumlahSiswa = User::where('role', 'siswa')->where('kelas_id', $st->kelas_id)->count();
+            $status = $st->assessments->map(fn ($a) => $a->statusKelas($jumlahSiswa))->countBy();
 
-        // Status baca laporan terakhir yang dikirim ke orang tua
-        $laporan = LaporanPerkembangan::where('subject_teacher_id', $st->id)
-            ->with(['siswa.student.parents', 'siswa.dibaca'])->latest()->first();
-        [$ortuBaca, $ortuTotal] = $laporan ? $laporan->keterbacaan() : [0, 0];
+            // Status baca laporan terakhir yang dikirim ke orang tua
+            $laporan = LaporanPerkembangan::where('subject_teacher_id', $st->id)
+                ->with(['siswa.student.parents', 'siswa.dibaca'])->latest()->first();
+            [$ortuBaca, $ortuTotal] = $laporan ? $laporan->keterbacaan() : [0, 0];
 
-        return [
-            'st' => $st,
-            'siswa' => $jumlahSiswa,
-            'status' => $status,
-            'laporan' => $laporan,
-            'ortu_total' => $ortuTotal,
-            'ortu_baca' => $ortuBaca,
-            // Grafik: rata-rata nilai kelas untuk tiap penilaian yang sudah dinilai
-            'grafik' => $st->assessments->filter(fn ($a) => $a->scores->isNotEmpty())->sortBy('tanggal')
-                ->map(fn ($a) => ['label' => $a->judul, 'rata' => round($a->scores->avg('nilai_konversi'), 1)])->values(),
+            return [
+                'st' => $st,
+                'siswa' => $jumlahSiswa,
+                'status' => $status,
+                'laporan' => $laporan,
+                'ortu_total' => $ortuTotal,
+                'ortu_baca' => $ortuBaca,
+                // Grafik: rata-rata nilai kelas untuk tiap penilaian yang sudah dinilai
+                'grafik' => $st->assessments->filter(fn ($a) => $a->scores->isNotEmpty())->sortBy('tanggal')
+                    ->map(fn ($a) => ['label' => $a->judul, 'rata' => round($a->scores->avg('nilai_konversi'), 1)])->values(),
             ];
         });
 
@@ -244,8 +244,6 @@ class DashboardController extends Controller
         $student = $user->siswaDipantau();
         if (!$student) {
             return view('dashboard.pantau', ['student' => null]);
-                        'laporanGuru' => LaporanSiswa::where('student_id', $student->id)
-                ->with(['laporan.pengirim', 'dibaca'])->latest()->take(3)->get(),
         }
 
         $semester = Setting::semesterAktif();
@@ -300,6 +298,8 @@ class DashboardController extends Controller
             'nilaiTerbaru' => $nilaiTerbaru,
             'evaluasiBelum' => max(0, $evaluasiBelum),
             'notifikasi' => $user->notifikasi()->take(4)->get(),
+            'laporanGuru' => LaporanSiswa::where('student_id', $student->id)
+                ->with(['laporan.pengirim', 'dibaca'])->latest()->take(3)->get(),
             'tren' => $tren,
             'perMapel' => $perMapel,
         ]);

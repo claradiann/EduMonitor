@@ -19,6 +19,7 @@ class Notifikasi extends Model
         'nilai' => ['fa-square-poll-vertical', 'text-emerald-600 bg-emerald-50'],
         'akses' => ['fa-lock-open', 'text-brand-600 bg-brand-50'],
         'pengingat' => ['fa-bell', 'text-rose-600 bg-rose-50'],
+        'laporan' => ['fa-file-lines', 'text-soga-700 bg-soga-50'],
         'info' => ['fa-circle-info', 'text-slate-600 bg-slate-100'],
     ];
 

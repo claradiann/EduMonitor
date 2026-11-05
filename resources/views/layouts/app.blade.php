@@ -21,6 +21,12 @@
     $role = $user->role;
     $semesterAktif = \App\Models\Setting::semesterAktif();
 
+    // Orang tua: jumlah laporan guru yang belum dibuka
+    $laporanBaru = $role === 'orang_tua'
+        ? \App\Models\LaporanSiswa::whereIn('student_id', $user->children->pluck('id'))
+            ->whereDoesntHave('dibaca', fn ($q) => $q->where('user_id', $user->id))->count()
+        : 0;
+
     // Menu per peran: [route, ikon, label, pola route aktif, angka penanda]
     $menu = match ($role) {
         'siswa' => [
@@ -28,6 +34,7 @@
                 ['dashboard', 'fa-house', 'Beranda', 'dashboard'],
                 ['jadwal', 'fa-calendar-days', 'Jadwal Penilaian', 'jadwal'],
                 ['nilai', 'fa-chart-simple', 'Nilai', 'nilai'],
+                ['laporan', 'fa-file-lines', 'Laporan dari Guru', 'laporan*'],
             ],
             'Lainnya' => [
                 ['siswa.evaluasi', 'fa-star-half-stroke', 'Evaluasi Guru', 'siswa.evaluasi|evaluation.*'],
@@ -39,12 +46,14 @@
                 ['dashboard', 'fa-house', 'Beranda', 'dashboard'],
                 ['jadwal', 'fa-calendar-days', 'Jadwal Penilaian', 'jadwal'],
                 ['nilai', 'fa-chart-simple', 'Nilai Anak', 'nilai'],
+                ['laporan', 'fa-file-lines', 'Laporan dari Guru', 'laporan*', $laporanBaru],
             ],
         ],
         'guru' => array_filter([
             'Mengajar' => [
                 ['dashboard', 'fa-house', 'Beranda', 'dashboard'],
                 ['guru.penilaian', 'fa-clipboard-check', 'Penilaian', 'guru.penilaian*|guru.rekap-bab'],
+                ['guru.laporan', 'fa-file-lines', 'Laporan ke Orang Tua', 'guru.laporan*'],
             ],
             'Ekstrakurikuler' => \App\Models\Ekstrakurikuler::where('pembina_id', $user->id)->exists()
                 ? [['guru.ekskul', 'fa-people-group', 'Ekskul Binaan', 'guru.ekskul|ekskul.*']] : null,
@@ -60,6 +69,7 @@
                 ['admin.jadwal', 'fa-calendar-days', 'Jadwal & UTS/UAS', 'admin.jadwal*'],
                 ['admin.akses', 'fa-lock-open', 'Buka Akses Nilai', 'admin.akses', \App\Models\UploadUnlock::where('status', 'menunggu')->count()],
                 ['admin.ekskul', 'fa-people-group', 'Ekstrakurikuler', 'admin.ekskul|ekskul.*'],
+                ['admin.laporan-perkembangan', 'fa-file-lines', 'Laporan ke Orang Tua', 'admin.laporan-perkembangan|guru.laporan.show'],
             ],
             'Kinerja Guru' => [
                 ['admin.recap', 'fa-chart-column', 'Rekap Kinerja', 'admin.recap'],

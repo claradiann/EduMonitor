@@ -6,6 +6,7 @@ use App\Models\IncidentReport;
 use App\Models\SubjectTeacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\LaporanController;
 
 class LaporanInsidentalController extends Controller
 {

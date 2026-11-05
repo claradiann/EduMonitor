@@ -37,7 +37,6 @@
             <textarea id="l-ket" name="keterangan" rows="3" maxlength="500" class="input" placeholder="Contoh: jam ke-3 dan ke-4 tidak ada guru dan tidak ada tugas.">{{ old('keterangan') }}</textarea>
         </div>
         <button class="btn btn-primary w-full"><i class="fa-solid fa-paper-plane"></i>Kirim laporan</button>
-        <p class="hint text-center">Laporan ini tidak memengaruhi nilai evaluasi guru di akhir semester.</p>
     </form>
 
     <section class="card card-pad">

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkskulController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LaporanInsidentalController;
 use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\NotifikasiController;
@@ -30,12 +31,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifikasi/{notifikasi}', [NotifikasiController::class, 'buka'])->name('notifikasi.buka');
     Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
 
-    // Siswa & orang tua: nilai dan jadwal penilaian
+    // Siswa & orang tua: nilai, jadwal penilaian, dan laporan dari guru
     Route::get('/nilai', [NilaiController::class, 'index'])->name('nilai');
     Route::get('/siswa/nilai', [NilaiController::class, 'index'])->name('siswa.nilai');
     Route::get('/orangtua/nilai', [NilaiController::class, 'index'])->name('orangtua.nilai');
     Route::get('/jadwal', [PemantauanController::class, 'index'])->name('jadwal');
     Route::post('/pilih-anak', [AnakController::class, 'pilih'])->name('anak.pilih');
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/{laporanSiswa}', [LaporanController::class, 'showSiswa'])->name('laporan.show');
 
     // Siswa
     Route::get('/siswa/evaluasi', [DashboardController::class, 'siswaEvaluasi'])->name('siswa.evaluasi');
@@ -63,6 +66,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/guru/kelas/{subjectTeacher}/rekap-bab', [PenilaianController::class, 'rekapBab'])->name('guru.rekap-bab');
     Route::get('/guru/ekspor/{subjectTeacher}', [PenilaianController::class, 'ekspor'])->name('guru.ekspor');
     Route::get('/guru/ekskul', [EkskulController::class, 'pembina'])->name('guru.ekskul');
+    Route::get('/guru/laporan', [LaporanController::class, 'guruIndex'])->name('guru.laporan');
+    Route::get('/guru/laporan/buat/{subjectTeacher}', [LaporanController::class, 'create'])->name('guru.laporan.buat');
+    Route::post('/guru/laporan/kirim/{subjectTeacher}', [LaporanController::class, 'store'])->name('guru.laporan.kirim');
+    Route::get('/guru/laporan/{laporan}', [LaporanController::class, 'show'])->name('guru.laporan.show');
 
     // Ekstrakurikuler (admin dan guru pembina)
     Route::get('/ekskul/{ekskul}', [EkskulController::class, 'show'])->name('ekskul.show');
@@ -77,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/admin/recap', [DashboardController::class, 'recap'])->name('admin.recap');
     Route::get('/admin/laporan', [LaporanInsidentalController::class, 'index'])->name('admin.laporan');
+    Route::get('/admin/laporan-perkembangan', [LaporanController::class, 'adminIndex'])->name('admin.laporan-perkembangan');
     Route::get('/admin/pengaturan', [PengaturanController::class, 'edit'])->name('admin.pengaturan');
     Route::put('/admin/pengaturan', [PengaturanController::class, 'update'])->name('admin.pengaturan.update');
 

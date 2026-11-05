@@ -18,7 +18,7 @@ use App\Models\SubjectTeacher;
 use App\Models\UploadUnlock;
 use App\Models\User;
 use App\Services\NilaiService;
-use App\Services\NilaiService;
+use App\Services\LaporanService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -189,6 +189,11 @@ class MonitoringDemoSeeder extends Seeder
             Notifikasi::where('judul', $judul)->update(['created_at' => now()->subDays($hariLalu)->subHours(2)]);
         }
         Notifikasi::where('created_at', '<', now()->subDays(3))->update(['dibaca_at' => now()->subDays(3)]);
+        if ($laporanMtk) {
+            $lsClara = LaporanSiswa::where('laporan_perkembangan_id', $laporanMtk->id)->where('student_id', $clara->id)->first();
+            Notifikasi::kirim([$budi->id], 'laporan', 'Laporan perkembangan belajar',
+                'Pak Thomas mengirim laporan Matematika Bab 1 untuk Clara.', route('laporan.show', $lsClara));
+        }
         Notifikasi::kirim(User::where('role', 'admin')->pluck('id'), 'akses', 'Pengajuan buka akses unggah',
             'Bu Ndari mengajukan buka akses untuk Kuis 2 (IPA · ' . $clara->kelas->nama_kelas . ').', route('admin.akses'));
     }
