@@ -2,67 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Show the login form.
-     */
+    /** Halaman login. Pengguna yang sudah login langsung ke dashboard (diatur middleware guest). */
     public function showLogin()
     {
-        if (Auth::check()) {
-            return redirect()->route('dashboard');
-        }
         return view('auth.login');
     }
 
-    /**
-     * Handle authentication attempt.
-     */
+    /** Login dengan username atau email, ditambah password (BR-01). */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $data = $request->validate([
             'login_id' => 'required|string',
             'password' => 'required|string',
+        ], [
+            'login_id.required' => 'Username atau email wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
         ]);
 
-        // Attempt login with username or email
-        $loginField = filter_var($credentials['login_id'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        // Isian berbentuk email dicocokkan ke kolom email; selain itu ke username (disimpan huruf kecil).
+        $kolom = filter_var($data['login_id'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $nilai = $kolom === 'username' ? strtolower($data['login_id']) : $data['login_id'];
 
-        if (Auth::attempt([$loginField => $credentials['login_id'], 'password' => $credentials['password']], $request->filled('remember'))) {
+        if (Auth::attempt([$kolom => $nilai, 'password' => $data['password']], $request->boolean('remember'))) {
             $request->session()->regenerate();
+
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()->withErrors([
-            'login_id' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
-        ])->onlyInput('login_id');
+        return back()
+            ->withErrors(['login_id' => 'Username/email atau password salah.'])
+            ->onlyInput('login_id');
     }
 
     /**
-     * Handle quick-login for demo purposes.
+     * Login demo tanpa password, untuk presentasi di laptop sendiri.
+     * Route-nya hanya didaftarkan saat APP_ENV=local (BR-04). Cek di sini adalah lapis kedua.
      */
-    public function quickLogin($username)
+    public function quickLogin(string $username)
     {
-        $user = \App\Models\User::where('username', $username)->first();
-        if ($user) {
-            Auth::login($user);
-            session()->regenerate();
-            return redirect()->route('dashboard');
+        abort_unless(app()->environment('local'), 404);
+
+        $user = User::where('username', $username)->first();
+        if (! $user) {
+            return redirect()->route('login')->withErrors(['login_id' => 'Akun demo tidak ditemukan.']);
         }
-        return redirect()->route('login')->withErrors(['login_id' => 'User demo tidak ditemukan.']);
+
+        Auth::login($user);
+        session()->regenerate();
+
+        return redirect()->route('dashboard');
     }
 
-    /**
-     * Log the user out.
-     */
+    /** Logout: sesi dihapus dan token CSRF diganti (KF-U02). */
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

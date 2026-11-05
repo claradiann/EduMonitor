@@ -124,6 +124,9 @@
             <a href="{{ route($profileRoute) }}" class="nav-link {{ $isActive($profileRoute) ? 'active' : '' }}">
                 <i class="fa-solid fa-user"></i><span>Profil</span>
             </a>
+            <a href="{{ route('akun.password') }}" class="nav-link {{ $isActive('akun.password') ? 'active' : '' }}">
+                <i class="fa-solid fa-key"></i><span>Ganti Password</span>
+            </a>
         </nav>
 
         <div class="p-3 border-t border-[color:var(--line)]">

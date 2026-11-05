@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'peran' => \App\Http\Middleware\CekPeran::class,
+        ]);
+
+        // Pengguna yang belum login diarahkan ke halaman login (route bernama 'login' = '/').
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        // Pengguna yang sudah login dan membuka halaman tamu diarahkan ke dashboard.
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

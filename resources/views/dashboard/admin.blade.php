@@ -5,26 +5,11 @@
 @section('content')
 <div class="space-y-6">
     @php
-        $perlu = [];
-        if ($stats['pengajuan']) $perlu[] = '<b>' . $stats['pengajuan'] . ' pengajuan buka akses</b> menunggu persetujuan';
-        if ($stats['terlambat']) $perlu[] = '<b>' . $stats['terlambat'] . ' penilaian</b> melewati batas unggah';
-        $kalimat = $perlu ? 'Perlu ditindaklanjuti: ' . implode(' dan ', $perlu) . '.' : 'Tidak ada yang perlu ditindaklanjuti hari ini.';
-        if ($ujianMendatang->isNotEmpty()) {
-            $u = $ujianMendatang->first()['contoh'];
-            $kalimat .= ' ' . $u->jenisLabel() . ' berikutnya ' . $u->tanggal->translatedFormat('l d F') . '.';
-        }
         $totalStatus = $statusSekolah->sum();
         $urutStatus = ['nilai_tersedia', 'melewati_batas', 'menunggu_nilai', 'dijadwalkan'];
     @endphp
-    @include('partials.sapaan', [
-        'judul' => 'Ringkasan Sekolah',
-        'teks' => $kalimat,
-        'chips' => [
-            [route('admin.akses'), 'fa-lock-open', 'Buka akses nilai'],
-            [route('admin.jadwal'), 'fa-calendar-days', 'Jadwal UTS/UAS'],
-            [route('admin.recap'), 'fa-chart-column', 'Rekap kinerja'],
-        ],
-    ])
+    {{-- Ringkasan "perlu ditindaklanjuti" sudah tampil di kartu di bawah, jadi sapaan cukup berisi nama. --}}
+    @include('partials.sapaan', ['nama' => Auth::user()->name])
 
     <!-- Yang perlu ditindaklanjuti -->
     <div class="grid sm:grid-cols-3 gap-3">
